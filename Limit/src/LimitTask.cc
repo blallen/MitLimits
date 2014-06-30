@@ -240,7 +240,7 @@ void LimitTask::WriteHeader()
   fprintf(fCard, "imax 1  number of channels \n");
   fprintf(fCard, "jmax *  number of backgrounds \n");
   //fprintf(fCard, "jmax %u  number of backgrounds \n",fTask->NBgProcesses());
-  //fprintf(fCard, "kmax *  number of sources of systematic uncertainties \n");
+  //pitfprintf(fCard, "kmax *  number of sources of systematic uncertainties \n");
   fprintf(fCard, "kmax %u  number of sources of systematic uncertainties \n", fTask->NSystematics());
   //printf("\n Wrote channel info");
 
