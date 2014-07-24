@@ -21,30 +21,17 @@ ClassImp(mithep::LimitTask)
 using namespace std;
 using namespace mithep;
 
-const TH1D *LimitTask::sPuWeights = 0;
-
 //--------------------------------------------------------------------------------------------------
-LimitTask::LimitTask(TaskProcesses *taskProcesses, const double lumi) :
+LimitTask::LimitTask(TaskProcesses *taskProcesses) :
   fTask        (taskProcesses),
-  fHistStyles  (0),
-  fTargetLumi  (lumi),
+  fCard        (0),
   fRootFileName("mitLimitTask"),
-  fIdxHistMax  (-1),
-  fNRebin      (1),
-  fEmptyHist   (0),
+  fRootFile    (0),
   fDataHist    (0),
-  fHistMinimum (0),
-  fHistMaximum (0),
-  fHistXMinimum(0),
-  fHistXMaximum(0),
-  fAxisTitleX  (""),
-  fAxisTitleY  ("Number of Events"),
-  fLogy        (false),
-  fXLegend     (65.),
-  fYLegend     (94.),
-  fNBins       (100),
-  fPngFileName ("mitLimitTask.png"),
-  fPuTarget    (0)
+  fExpBg       (0),
+  fCutVariable ("-"),
+  fCutValue    (0),
+  fBinnedOut   (0)
 {
   // Constructor
 
@@ -54,7 +41,7 @@ LimitTask::LimitTask(TaskProcesses *taskProcesses, const double lumi) :
     TString home     = Utils::GetEnv("HOME");
     TString mitMyAna = Utils::GetEnv("MIT_USER_DIR");
     TString hstDir   = Utils::GetEnv("MIT_ANA_HIST");
-    TString anaCfg   = Utils::GetEnv("MIT_ANA_CFG");
+    TString anaCfg   = Utils::GetEnv("MIT_LMT_CFG");
     TString prdCfg   = Utils::GetEnv("MIT_PROD_CFG");
     
     // define sample
@@ -71,10 +58,6 @@ LimitTask::~LimitTask()
 
   if (fTask)
     delete fTask;
-  if (fHistStyles)
-    delete fHistStyles;
-  if (fEmptyHist)
-    delete fEmptyHist;
   if (fDataHist)
     delete fDataHist;
 
@@ -96,97 +79,14 @@ LimitTask::~LimitTask()
 }
 
 //--------------------------------------------------------------------------------------------------
-void LimitTask::SetAxisTitles(const char* xtit, const char* ytit)
-{
-  fAxisTitleX = TString(xtit);
-  fAxisTitleY = TString(ytit);
-
-  return;
-}
-
-//--------------------------------------------------------------------------------------------------
-void LimitTask::SetDrawExp(const char* draw, const char* sel)
-{
-  fDrawExp = TString(draw);
-  fSelExp  = TString(sel);
-
-  return;
-}
-
-//--------------------------------------------------------------------------------------------------
-void LimitTask::DrawFrame()
-{
-  // find the maximum
-  double maximum = 0;
-  if (fHistMaximum > 0)
-    maximum = fHistMaximum;
-  else {
-    for (unsigned int i=0; i<fHistsToPlot.size(); i++) { 
-      TH1D *h = fHistsToPlot[i];
-      if (h->GetMaximum() > maximum)
-	maximum = h->GetMaximum();
-    }
-  }
-
-  // draw the frame
-  TH1D *hTmp = new TH1D("FRAME","FRAME",fNBins,fHistXMinimum,fHistXMaximum);
-  MitStyle::InitHist(hTmp,fAxisTitleX.Data(),fAxisTitleY.Data(),kBlack);
-  if (fHistMinimum != 0)
-    hTmp->SetMinimum(fHistMinimum);
-  hTmp->SetMaximum(maximum*1.1);
-  // draw the frame large enough for the largest contribution (+10%)
-  hTmp->DrawCopy("hist");
-
-  // delete the temporary histogram
-  if (hTmp)
-    delete hTmp;
-}
-
-//--------------------------------------------------------------------------------------------------
-void LimitTask::DrawHistograms()
-{
-  // here we draw
-  fHistStyles->ResetStyle();
-  const HistStyle *hStyle = 0;
-  for (unsigned int i=0; i<fHistsToPlot.size(); i++) { 
-    TH1D *h = fHistsToPlot[i];
-    hStyle = fHistStyles->CurrentStyle();
-    h->SetLineColor(hStyle->Color());
-    h->Draw("same,hist");        // do not use DrawCopy ... it does not display the first histogram
-    fHistStyles->NextStyle();
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
-void LimitTask::OverlayEmptyHist() const
-{
-  // Overlay an empty histogram onto the picture
-  if (fEmptyHist)
-    fEmptyHist->Draw("same");
-
-  return;
-}
-
-//--------------------------------------------------------------------------------------------------
-float LimitTask::PuWeight(Int_t npu)
-{
-  if (npu<0)
-    return 1.0;
-  if (!sPuWeights)
-    return 1.0;
-  
-  return sPuWeights->GetBinContent(sPuWeights->FindFixBin(npu));
-}
-
-//--------------------------------------------------------------------------------------------------
-void LimitTask::WriteDataCard(CardType cType, const char* file, const char* channel)
+void LimitTask::WriteDataCard(CardType cType)
 {
 
   // Interface to producing all type of data cards
 
   // give overview of what we plot
-  printf(" LimitTask::WriteDataCard -- Writing\n\n");
-  printf("   source    : %s\n   variable  : %s\n\n",file,channel);
+  printf("\n LimitTask::WriteDataCard -- Writing\n\n");
+  printf("   source    : %s\n   variable  : %s\n   cut value : %.2f\n\n",fRootFileName.Data(),fCutVariable.Data(),fCutValue);
   printf("   signal samples: %d\n",fTask->NSigProcesses());
   printf("   background samples: %d\n",fTask->NBgProcesses());
   printf("   data      : %d\n\n",fTask->NDataProcesses());
@@ -198,7 +98,6 @@ void LimitTask::WriteDataCard(CardType cType, const char* file, const char* chan
   }
 
   // Read ROOT file and add histograms to vectors
-  fRootFileName = file;
   fRootFile = new TFile((fRootFileName.Data()+TString(".root")).Data());
   if (fRootFile->IsOpen() == kFALSE) 
     {
@@ -207,20 +106,20 @@ void LimitTask::WriteDataCard(CardType cType, const char* file, const char* chan
       return;
     }
   ReadRootFile();
-
+  
   // Create Data Card
   TString type;
   if (cType == Integral) type = "Integral";
   else if (cType == Binned) type = "Binned";
   else if (cType == Unbinned) type = "Unbinned";
-  fCard = fopen (fRootFileName+"_"+type+".txt","w");
-  fprintf(fCard, "# Data card for %s %s \n", file, channel);
+  fCard = fopen (fRootFileName+"_"+fCutVariable.Data()+"_"+(Long_t)fCutValue+"_"+type+".txt","w");
+  fprintf(fCard, "# Data card for %s %s \n", fRootFileName.Data(), fCutVariable.Data());
 
   //Write to Data Card
   WriteHeader();
   if (cType == Binned) WriteShapeBinned();
-  WriteDataIntegral(channel);
-  WriteMCIntegral(channel);
+  WriteDataIntegral(fCutVariable.Data());
+  WriteMCIntegral(fCutVariable.Data());
   if (cType == Integral) WriteSystIntegral();
   else if (cType == Binned) WriteSystBinned();
      
@@ -251,13 +150,15 @@ void LimitTask::WriteDataIntegral(const char* draw)
 {
   double NObs;
   if (fDataHist) 
-    NObs = fDataHist->Integral();
+    {
+      NObs = fDataHist->Integral(GetCutBin(fDataHist),fDataHist->GetNbinsX());
+    }
   else NObs = -1;
   fprintf(fCard, "#-----------------------------------------------------#\n");
   fprintf(fCard, "# Block to specify bins and number of observed events #\n");
   fprintf(fCard, "#-----------------------------------------------------#\n");
   fprintf(fCard, "bin %s \n", draw);
-  fprintf(fCard, "observation %.0f \n", NObs);
+  fprintf(fCard, "observation %f \n", NObs);
   //printf("\n Wrote data values");
 }
 
@@ -308,12 +209,30 @@ void LimitTask::WriteMCIntegral(const char* draw)
       fprintf(fCard, "%12i", i+1); 
     }
 
+  double rate = 0;
   fprintf(fCard, "\n%s %8s", "rate", " ");
   for (unsigned int i = 0; i < fHistsToPlot.size(); i++)
     {
-      double rate = fHistsToPlot[i]->Integral();
+      rate = fHistsToPlot[i]->Integral(GetCutBin(fHistsToPlot[i]),fHistsToPlot[i]->GetNbinsX()+1);
       fprintf(fCard, "%12.2f", rate);
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+int LimitTask::GetCutBin(const TH1D* hTmp)
+{
+  double width = hTmp->GetXaxis()->GetBinWidth(1);
+  double tmpBin = (fCutValue - hTmp->GetBinLowEdge(1))/width;
+  UInt_t CutBin = 0;
+  if (fmod(tmpBin,1))
+    {	
+      tmpBin+=1;
+      printf("Cut Value %.2f not divisible by bin width %.2f for histogram %s!\n", fCutValue,width,hTmp->GetName()); 
+      CutBin = tmpBin + 1;
+      printf("Using Cut Value of %.2f instead! Consider rebinning histogram and running again!\n", hTmp->GetXaxis()->GetBinLowEdge(CutBin));
+    }
+  else CutBin = tmpBin + 1;
+  return CutBin;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -361,7 +280,7 @@ void LimitTask::WriteSystIntegral()
 	  const Process *p = fTask->GetSigProcess(i);
 	  if (*p->GetSystematic(j))
 	    {
-	      ObsInt = fSigHists[i]->Integral();
+	      ObsInt = fSigHists[i]->Integral(GetCutBin(fSigHists[i]),fSigHists[i]->GetNbinsX()+1);
 	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Up");
 	      DownPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Down");
 	      fprintf(fCard, "%7.2f/%3.2f", DownPerc, UpPerc);
@@ -374,7 +293,7 @@ void LimitTask::WriteSystIntegral()
 	  const Process *p = fTask->GetBgProcess(i);
 	  if (*p->GetSystematic(j))
 	    {
-	      ObsInt = fBgHists[i]->Integral();
+	      ObsInt = fBgHists[i]->Integral(GetCutBin(fBgHists[i]),fBgHists[i]->GetNbinsX()+1);
 	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Up");
 	      DownPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Down");
 	      fprintf(fCard, "%7.2f/%3.2f", DownPerc, UpPerc);
@@ -395,7 +314,7 @@ double LimitTask::GetPercError(double ObsInt, const char* process, const char* s
       printf(" WARNING -- %s histogram not found. Next process!\n",Name.Data());
       return 0;
     }
-  double DirInt = hTmp->Integral();
+  double DirInt = hTmp->Integral(GetCutBin(hTmp),hTmp->GetNbinsX()+1);
   double Perc = 1 + ((DirInt - ObsInt) / ObsInt);
   
   return Perc;
@@ -405,10 +324,40 @@ double LimitTask::GetPercError(double ObsInt, const char* process, const char* s
 //--------------------------------------------------------------------------------------------------
 void LimitTask::WriteShapeBinned()
 {
+  Int_t CutVal = fCutValue;
+  TString Outname = fRootFileName+TString("_")+(Long_t)CutVal+TString("_Binned.root");
+  fBinnedOut = new TFile(Outname.Data(), "RECREATE");
+  fBinnedOut->cd();
+
+  if (fDataHist)
+    {
+      for (int j = 0; j < fDataHist->GetNbinsX(); j++)
+	{
+	  if (j < GetCutBin(fDataHist))
+	    fDataHist->SetBinContent(j, 0);
+	}
+      fDataHist->Write();
+    }
+
+  for (UInt_t i = 0; i < fHistsToPlot.size(); i++)
+    {
+      for (int j = 0; j < fHistsToPlot[i]->GetNbinsX(); j++)
+	{
+	  if (j < GetCutBin(fHistsToPlot[i]))
+	    fHistsToPlot[i]->SetBinContent(j, 0);
+	}
+       fHistsToPlot[i]->Write();
+    }
+
+  delete fBinnedOut;
+
+
   fprintf(fCard, "#-----------------------------------------------------------#\n");
   fprintf(fCard, "# Block to specify path to histos for binned shape analysis #\n");
   fprintf(fCard, "#-----------------------------------------------------------#\n");
-  fprintf(fCard, "shapes * * %s $PROCESS $PROCESS_$SYSTEMATIC\n", (fRootFileName.Data()+TString(".root")).Data());
+  fprintf(fCard, "shapes * * %s $PROCESS $PROCESS_$SYSTEMATIC\n", Outname.Data());
+
+  
 }
 //--------------------------------------------------------------------------------------------------
 void LimitTask::ReadRootFile()
@@ -416,8 +365,29 @@ void LimitTask::ReadRootFile()
   // Check if histograms have already been read
   if ((fHistsToPlot.size() > 0) || fDataHist)
     {
-      printf(" WARNING - histograms already exist. EXIT.");
-      return;
+      printf(" Histograms already exist. Deleting and re-reading! \n");
+      if (fDataHist)
+	{	
+	  delete fDataHist;
+	  fDataHist = 0;
+	}
+      fSigHists.clear();
+      fBgHists.clear();
+      fExpBg = 0;
+      fHistsToPlot.clear();
+    }
+
+  // Point fDataHist at data histogram
+  for (UInt_t i=0; i<fTask->NDataProcesses(); i++)
+    {
+      const Process *p = fTask->GetDataProcess(i);
+      TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data());
+      if (!hTmp) 
+	{
+	  printf(" WARNING -- No histogram found for Data. Using sum of background processes instead!\n");
+	  continue;
+	}
+      fDataHist = new TH1D(*hTmp);
     }
 
   // Add signal processes to appropriate vectors
@@ -435,6 +405,7 @@ void LimitTask::ReadRootFile()
     }
 
   // Add background processes to appropriate vectors
+  bool SimData = !fDataHist;
   for (UInt_t i=0; i<fTask->NBgProcesses(); i++) 
     {
       const Process *p = fTask->GetBgProcess(i);
@@ -446,18 +417,17 @@ void LimitTask::ReadRootFile()
 	}
       fBgHists.push_back(hTmp);
       fHistsToPlot.push_back(hTmp);
-    }
-
-  // Point fDataHist at data histogram
-  for (UInt_t i=0; i<fTask->NDataProcesses(); i++)
-    {
-      const Process *p = fTask->GetDataProcess(i);
-      TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data());
-      if (!hTmp) 
+      if (SimData)
 	{
-	  printf(" WARNING -- No histogram found for Data. Observed number of events = -1\n");
-	  continue;
+	  if (i == 0)
+	    {
+	      fDataHist = new TH1D(*hTmp);
+	      fDataHist->SetName("data_obs");
+	      fDataHist->SetTitle("data_obs");
+	    }
+	  else
+	    fDataHist->Add(hTmp);
+	  fExpBg += hTmp->Integral(GetCutBin(hTmp),hTmp->GetNbinsX()+1);
 	}
-      fDataHist = new TH1D(*hTmp);
     }
 }
