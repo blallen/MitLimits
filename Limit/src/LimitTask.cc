@@ -112,7 +112,8 @@ void LimitTask::WriteDataCard(CardType cType)
   if (cType == Integral) type = "Integral";
   else if (cType == Binned) type = "Binned";
   else if (cType == Unbinned) type = "Unbinned";
-  fCard = fopen (fRootFileName+"_"+fCutVariable.Data()+"_"+(Long_t)fCutValue+"_"+type+".txt","w");
+  fCard = fopen (fRootFileName+"_"+(Long_t)fCutValue+"_"+type+".txt","w");
+  //fCard = fopen (fRootFileName+"_"+fCutVariable.Data()+"_"+(Long_t)fCutValue+"_"+type+".txt","w");
   fprintf(fCard, "# Data card for %s %s \n", fRootFileName.Data(), fCutVariable.Data());
 
   //Write to Data Card

@@ -19,15 +19,15 @@ parser.add_option('-Y', help='set Y variable name', dest='Yname', action='store'
 
 (opts, args) = parser.parse_args()
 
-mandatories = ['RunName','Type','Xaxis','Xname','Yaxis','Yname']
+mandatories = ['RunName','Type','Xaxis','Xname']
 for m in mandatories:
     if not opts.__dict__[m]:
-        print "Mandatory option is missing\n"
+        print "\nMandatory option is missing\n"
         parser.print_help()
         exit(-1)
 
 if (opts.Yname and not opts.Yaxis) or (opts.Yaxis and not opts.Yname):
-    print "For 2D plots, you must both define the Y axis and provide a name for the Y variable\n"
+    print "\nFor 2D plots, you must both define the Y axis and provide a name for the Y variable\n"
     parser.print_help()
     exit(-1)
     
@@ -50,7 +50,10 @@ os.environ['MIT_ANA_CFG']  = 'boostedv-plots-datadriven'
 
 os.environ['MIT_LMT_CFG']  = 'boostedv-limits-datadriven'
 
-RunName = opts.RunName
+if opts.Yaxis:
+    RunName = opts.RunName
+else:
+    RunName = opts.RunName+"_"+opts.Xname
 Type = opts.Type
 Xname = opts.Xname
 Xmin = opts.Xaxis[0]
@@ -66,51 +69,73 @@ if opts.Yaxis:
     Ybins = range(Ymax, Ymin-Ystep, -Ystep)
 
 ###==================================================================================================
+### Convert 2D Plots to 1D Plots
+###==================================================================================================
+if opts.Yaxis:
+    convertHistos = Popen(['python','./Convert2Dto1D.py',
+                           '-R',RunName,'-X',Xname,
+                           '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname],
+                          stdout=PIPE,stderr=PIPE,
+                          cwd=os.environ['MIT_LMT_PYT'])
+    (stdout, stderr) = convertHistos.communicate()
+    print stdout
+    
+###==================================================================================================
 ### Make Data Cards
 ###==================================================================================================
-
-convertHistos = Popen(['python','./Convert2Dto1D.py',
-                       '-R',RunName,'-X',Xname,
-                       '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname],
-                      stdout=PIPE,stderr=PIPE,
-                      cwd=os.environ['MIT_LMT_PYT'])
-(stdout, stderr) = convertHistos.communicate()
-print stdout
-
-###==================================================================================================
-### Make Data Cards
-###==================================================================================================
-RootFileName = 'DataCard_'+RunName+'_'+Yname
-for Ybin in Ybins:
-    tmpFileName = RootFileName+"_"+str(Ybin)
+if opts.Yaxis:
+    tmpFileName = 'DataCard_'+RunName+'_'+Yname
+    for Ybin in Ybins:
+        RootFileName = tmpFileName+"_"+str(Ybin)+"_"+Xname
+        limitTask = Popen(['python','./MakeDataCards.py',
+                           '-R',RootFileName,'-T',Type,'-x',
+                           str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
+                          stdout=PIPE,stderr=PIPE,
+                          cwd=os.environ['MIT_LMT_PYT'])
+        (stdout, stderr) = limitTask.communicate()
+        print stdout
+else:
+    RootFileName = 'DataCard_'+RunName
     limitTask = Popen(['python','./MakeDataCards.py',
-                       '-R',tmpFileName,'-T',Type,'-x',
+                       '-R',RootFileName,'-T',Type,'-x',
                        str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
                       stdout=PIPE,stderr=PIPE,
                       cwd=os.environ['MIT_LMT_PYT'])
     (stdout, stderr) = limitTask.communicate()
     print stdout
-
+    #print stderr
+    
 ###==================================================================================================
 ### Plot Limits
 ###==================================================================================================
 cardStorage = os.path.join(os.environ['MIT_LMT_TOOL'],'data',RunName)
 #print cardStorage
 
-for Ybin in Ybins:
-    for Xbin in Xbins:
-        cardName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type+'.txt'
+for Xbin in Xbins:
+    if opts.Yaxis:
+        for Ybin in Ybins:
+            cardName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type+'.txt'
+            cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
+            cardEnd   = os.path.join(cardStorage,cardName)
+            os.renames(cardStart,cardEnd)
+    else:
+        cardName = 'DataCard_'+RunName+'_'+str(Xbin)+'_'+Type+'.txt'
         #print cardName
         cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
         cardEnd   = os.path.join(cardStorage,cardName)
         os.renames(cardStart,cardEnd)
-        #os.remove(cardLocation)
-
-plotLimits = Popen(['python','./PlotLimits.py',
-                    '-R',RunName,'-T',Type,
-                    '-x',str(Xmin),str(Xmax),str(Xstep),'-X',Xname,
-                    '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname],
-                   cwd=os.environ['MIT_LMT_PYT'])
+            
+if opts.Yaxis:
+    plotLimits = Popen(['python','./PlotLimits.py',
+                        '-R',RunName,'-T',Type,
+                        '-x',str(Xmin),str(Xmax),str(Xstep),'-X',Xname,
+                        '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname],
+                       cwd=os.environ['MIT_LMT_PYT'])
+else:
+    plotLimits = Popen(['python','./PlotLimits.py',
+                        '-R',RunName,'-T',Type,
+                        '-x',str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
+                       cwd=os.environ['MIT_LMT_PYT'])
 #plotLimits.communicate()
 
 

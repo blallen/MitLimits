@@ -80,7 +80,7 @@ convertMacro.write('MitStyle::Init(); \nTFile *f2D = new TFile("DataCard_'+RunNa
 
 ### Create the 1D histo files
 for Ybin in Ybins:
-    convertMacro.write('f1D = new TFile(TString("DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'.root"), "RECREATE");\n')
+    convertMacro.write('f1D = new TFile(TString("DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'.root"), "RECREATE");\n')
     for sample in samples:
         convertMacro.write('h2Dtmp = (TH2D*)f2D->Get("'+sample+'");\n')
         convertMacro.write('Ybin = ('+str(Ybin)+' / h2Dtmp->GetYaxis()->GetBinWidth(1)) + 1;\n')

@@ -68,7 +68,7 @@ for Xbin in Xbins:
     limitMacro.write('limitTask->WriteDataCard('+Type+');\n\n')
 
 ### Close Macro ###
-limitMacro.write('delete limitTask; \nreturn; \n}')
+limitMacro.write('delete limitTask; \nreturn; \n}\n\n')
 limitMacro.close()
 
 ###==================================================================================================
@@ -78,5 +78,6 @@ limitMacro.close()
 limitTask = Popen(['root','-b','-l','-q',MacroName+'.C+'],stdout=PIPE,stderr=PIPE,cwd=RootDir)
 (stdout, stderr) = limitTask.communicate()
 print stdout
+#print stderr
 
 exit(-1)
