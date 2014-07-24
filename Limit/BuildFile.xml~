@@ -1,8 +1,0 @@
-<use   name="MitPlots/Style"/>
-<use   name="MitLimits/Input"/>
-<use   name="MitPlots/Plot"/>
-<use   name="rootgraphics"/>
-<use   name="root"/>
-<export>
-  <lib   name="MitLimits/Limit"/>
-</export>
