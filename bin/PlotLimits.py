@@ -168,7 +168,7 @@ if opts.Yaxis:
     WriteMacro2D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins,Ymin,Ymax,Ystep,Ybins)
 
 else:
-    MacroName = "PlotExpectedLimits_"+RunName+"_"+Xname+"_"+Type
+    MacroName = "PlotExpectedLimits_"+RunName+"_"+Type
     FileName = os.path.join(MacroDir,MacroName+".C")
     plotName = 'Plots/'+RunName+'_ExpLimits.png'
     WriteMacro1D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins)

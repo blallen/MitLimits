@@ -106,7 +106,7 @@ else:
                       cwd=os.environ['MIT_LMT_PYT'])
     (stdout, stderr) = limitTask.communicate()
     print stdout
-    #print stderr
+    print stderr
     
 ###==================================================================================================
 ### Plot Limits
@@ -123,7 +123,6 @@ for Xbin in Xbins:
             os.renames(cardStart,cardEnd)
     else:
         cardName = 'DataCard_'+RunName+'_'+str(Xbin)+'_'+Type+'.txt'
-        #print cardName
         cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
         cardEnd   = os.path.join(cardStorage,cardName)
         os.renames(cardStart,cardEnd)
