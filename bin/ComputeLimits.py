@@ -38,17 +38,20 @@ if (opts.Yname and not opts.Yaxis) or (opts.Yaxis and not opts.Yname):
 ### Initialize the variables!
 ###==================================================================================================
 
-os.environ['MIT_LMT_PYT']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/bin')
+os.environ['MIT_LMT_DIR']  = os.path.join(os.environ['CMSSW_BASE'], 'src/MitLimits')
 os.environ['MIT_ROOT_DIR'] = os.path.join(os.environ['HOME'],"cms/root")
-os.environ['MIT_MCR_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitMonoJet/macros')
-os.environ['MIT_CFG_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitMonoJet/config')
+
+os.environ['MIT_LMT_PYT']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/bin')
+os.environ['MIT_MCR_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros')
+os.environ['MIT_CFG_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/config')
 os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['HOME'],'cms/cmssw/032/CMSSW_6_1_1/src/HiggsAnalysis/CombinedLimit')
+
+os.environ['MIT_LMT_CFG']  = 'boostedv-limits-datadriven'
 
 os.environ['MIT_PROD_CFG'] = 'boostedv-v5'
 os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/'
-os.environ['MIT_ANA_CFG']  = 'boostedv-plots-datadriven'
 
-os.environ['MIT_LMT_CFG']  = 'boostedv-limits-datadriven'
+
 
 if opts.Yaxis:
     RunName = opts.RunName
@@ -108,7 +111,7 @@ else:
 ###==================================================================================================
 ### Plot Limits
 ###==================================================================================================
-cardStorage = os.path.join(os.environ['MIT_LMT_TOOL'],'data',RunName)
+cardStorage = os.path.join(os.environ['MIT_LMT_TOOL'],'data',opts.RunName)
 #print cardStorage
 
 for Xbin in Xbins:

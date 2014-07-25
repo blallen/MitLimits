@@ -112,7 +112,7 @@ if (opts.Yname and not opts.Yaxis) or (opts.Yaxis and not opts.Yname):
 ###==================================================================================================
 
 LimitToolDir = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['HOME'],'cms/cmssw/032/CMSSW_6_1_1/src/HiggsAnalysis/CombinedLimit'))
-MacroDir     = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitMonoJet/macros'))
+MacroDir     = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros'))
 RootDir      = os.getenv('MIT_ROOT_DIR', os.path.join(os.environ['HOME'],"cms/root"))
 
 limits = []

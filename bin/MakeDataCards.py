@@ -30,7 +30,8 @@ for m in mandatories:
 ### Initialize the variables!
 ###==================================================================================================
 
-MacroDir    = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitMonoJet/macros'))
+LimitDir    = os.getenv('MIT_LMT_DIR', os.path.join(os.environ['CMSSW_BASE'], 'src/MitLimits'))
+MacroDir    = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros'))
 ProdConfig  = os.getenv('MIT_PROD_CFG', 'boostedv-v5')
 AnaHist     = os.getenv('MIT_ANA_HIST', '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/')
 LimitConfig = os.getenv('MIT_LMT_CFG',  'boostedv-limits-datadriven')
@@ -57,7 +58,7 @@ limitMacro.write('#include <TSystem.h> \n#include "MitLimits/Limit/interface/Lim
 limitMacro.write('void '+MacroName+'() \n{\n\n')
 
 ### Set Sys Env Var ###
-limitMacro.write('gSystem->Setenv("MIT_PROD_CFG","'+ProdConfig+'"); \ngSystem->Setenv("MIT_ANA_HIST","'+AnaHist+'"); \ngSystem->Setenv("MIT_LMT_CFG","'+LimitConfig+'"); \n\n')
+limitMacro.write('gSystem->Setenv("MIT_LMT_DIR","'+LimitDir+'"); \ngSystem->Setenv("MIT_PROD_CFG","'+ProdConfig+'"); \ngSystem->Setenv("MIT_ANA_HIST","'+AnaHist+'"); \ngSystem->Setenv("MIT_LMT_CFG","'+LimitConfig+'"); \n\n')
 
 ### Initialize limit task
 limitMacro.write('LimitTask *limitTask = 0; \nlimitTask = new LimitTask(0); \nlimitTask->SetCutVariable("'+Xname+'"); \nlimitTask->SetRootFileName("'+RootFileName+'");\n\n')

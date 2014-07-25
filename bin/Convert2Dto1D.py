@@ -33,8 +33,8 @@ for m in mandatories:
 ###==================================================================================================
 
 RootDir     = os.getenv('MIT_ROOT_DIR', os.path.join(os.environ['HOME'],"cms/root"))
-MacroDir    = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitMonoJet/macros'))
-ConfigDir   = os.getenv('MIT_CFG_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitMonoJet/config'))
+MacroDir    = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros'))
+ConfigDir   = os.getenv('MIT_CFG_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/config'))
 LimitConfig = os.getenv('MIT_LMT_CFG',  'boostedv-limits-datadriven')
 
 RunName = opts.RunName

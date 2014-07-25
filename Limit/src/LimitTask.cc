@@ -39,15 +39,15 @@ LimitTask::LimitTask(TaskProcesses *taskProcesses) :
   if (!fTask) {
     // read all environment variables
     TString home     = Utils::GetEnv("HOME");
-    TString mitMyAna = Utils::GetEnv("MIT_USER_DIR");
+    TString lmtDir = Utils::GetEnv("MIT_LMT_DIR");
     TString hstDir   = Utils::GetEnv("MIT_ANA_HIST");
-    TString anaCfg   = Utils::GetEnv("MIT_LMT_CFG");
+    TString lmtCfg   = Utils::GetEnv("MIT_LMT_CFG");
     TString prdCfg   = Utils::GetEnv("MIT_PROD_CFG");
     
     // define sample
     fTask = new TaskProcesses(prdCfg.Data(),hstDir.Data());
-    fTask->SetNameTxt(anaCfg.Data());
-    fTask->ReadFile((mitMyAna + TString("/config")).Data());
+    fTask->SetNameTxt(lmtCfg.Data());
+    fTask->ReadFile((lmtDir + TString("/config")).Data());
   }
 }
 
