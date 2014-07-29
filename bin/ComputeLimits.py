@@ -54,7 +54,7 @@ os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/
 
 
 
-QRunName = opts.RunName
+xRunName = opts.RunName
 Type = opts.Type
 Xname = opts.Xname
 Xmin = opts.Xaxis[0]
