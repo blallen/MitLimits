@@ -15,9 +15,9 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
                       stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
     
     find = Popen(['grep','Expected 50.0%'],stdin=HiggsTool.stdout,stdout=PIPE,stderr=PIPE)
-    
+   
     lines = [line for line in find.stdout]
-        
+
     for line in lines:
         tmp = line.split()
         if tmp:
@@ -149,7 +149,7 @@ for Xbin in Xbins:
             print 'Using DataCard: '+DataCardPath
             limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
     else:
-        DataCardName = 'DataCard_'+RunName+'_'+str(Xbin)+'_'+Type+'.txt'
+        DataCardName = 'DataCard_'+RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type+'.txt'
         DataCardPath = os.path.join('data',RunName,DataCardName)
         print 'Using DataCard: '+DataCardPath
         limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
@@ -164,13 +164,13 @@ pprint(limits)
 if opts.Yaxis:
     MacroName = "PlotExpectedLimits_"+RunName+"_"+Yname+"_"+Xname+"_"+Type
     FileName = os.path.join(MacroDir,MacroName+".C")
-    plotName = 'Plots/'+RunName+'_ExpLimits_'+Yname+'_'+Xname+'.png'
+    plotName = 'Plots/ExpLimits_'+RunName+'_'+Yname+'_'+Xname+'_'+Type+'.png'
     WriteMacro2D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins,Ymin,Ymax,Ystep,Ybins)
 
 else:
-    MacroName = "PlotExpectedLimits_"+RunName+"_"+Type
+    MacroName = "PlotExpectedLimits_"+RunName+'_'+Xname+"_"+Type
     FileName = os.path.join(MacroDir,MacroName+".C")
-    plotName = 'Plots/'+RunName+'_ExpLimits.png'
+    plotName = 'Plots/ExpLimits_'+RunName+'_'+Xname+'_'+Type+'.png'
     WriteMacro1D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins)
 
 ###==================================================================================================

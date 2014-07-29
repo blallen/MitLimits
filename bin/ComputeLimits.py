@@ -56,7 +56,7 @@ os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/
 if opts.Yaxis:
     RunName = opts.RunName
 else:
-    RunName = opts.RunName+"_"+opts.Xname
+    RunName = opts.RunName #+"_"+opts.Xname
 Type = opts.Type
 Xname = opts.Xname
 Xmin = opts.Xaxis[0]
@@ -98,7 +98,7 @@ if opts.Yaxis:
         (stdout, stderr) = limitTask.communicate()
         print stdout
 else:
-    RootFileName = 'DataCard_'+RunName
+    RootFileName = 'DataCard_'+RunName+'_'+Xname
     limitTask = Popen(['python','./MakeDataCards.py',
                        '-R',RootFileName,'-T',Type,'-x',
                        str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
@@ -117,15 +117,31 @@ cardStorage = os.path.join(os.environ['MIT_LMT_TOOL'],'data',opts.RunName)
 for Xbin in Xbins:
     if opts.Yaxis:
         for Ybin in Ybins:
-            cardName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type+'.txt'
+            baseName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type
+            cardName = baseName+'.txt'
             cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
             cardEnd   = os.path.join(cardStorage,cardName)
             os.renames(cardStart,cardEnd)
+            if Type == 'Binned':
+                print Type
+                shapeName = baseName+'.root'
+                shapeStart = os.path.join(os.environ['MIT_ROOT_DIR'],shapeName)
+                shapeEnd   = os.path.join(cardStorage,shapeName)
+                os.renames(shapeStart,shapeEnd)
     else:
-        cardName = 'DataCard_'+RunName+'_'+str(Xbin)+'_'+Type+'.txt'
+        baseName = 'DataCard_'+RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type
+        cardName = baseName+'.txt'
         cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
         cardEnd   = os.path.join(cardStorage,cardName)
         os.renames(cardStart,cardEnd)
+        print Type
+        if Type == 'Binned':
+            print Type
+            shapeName = baseName+'.root'
+            shapeStart = os.path.join(os.environ['MIT_ROOT_DIR'],shapeName)
+            shapeEnd   = os.path.join(cardStorage,shapeName)
+            os.renames(shapeStart,shapeEnd)
+        
             
 if opts.Yaxis:
     plotLimits = Popen(['python','./PlotLimits.py',
