@@ -53,10 +53,8 @@ os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/
 
 
 
-if opts.Yaxis:
-    RunName = opts.RunName
-else:
-    RunName = opts.RunName #+"_"+opts.Xname
+
+QRunName = opts.RunName
 Type = opts.Type
 Xname = opts.Xname
 Xmin = opts.Xaxis[0]
@@ -134,9 +132,7 @@ for Xbin in Xbins:
         cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
         cardEnd   = os.path.join(cardStorage,cardName)
         os.renames(cardStart,cardEnd)
-        print Type
         if Type == 'Binned':
-            print Type
             shapeName = baseName+'.root'
             shapeStart = os.path.join(os.environ['MIT_ROOT_DIR'],shapeName)
             shapeEnd   = os.path.join(cardStorage,shapeName)

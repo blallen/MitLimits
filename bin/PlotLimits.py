@@ -164,13 +164,13 @@ pprint(limits)
 if opts.Yaxis:
     MacroName = "PlotExpectedLimits_"+RunName+"_"+Yname+"_"+Xname+"_"+Type
     FileName = os.path.join(MacroDir,MacroName+".C")
-    plotName = 'Plots/ExpLimits_'+RunName+'_'+Yname+'_'+Xname+'_'+Type+'.png'
+    plotName = 'ExpLimits_'+RunName+'_'+Yname+'_'+Xname+'_'+Type+'.png'
     WriteMacro2D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins,Ymin,Ymax,Ystep,Ybins)
 
 else:
     MacroName = "PlotExpectedLimits_"+RunName+'_'+Xname+"_"+Type
     FileName = os.path.join(MacroDir,MacroName+".C")
-    plotName = 'Plots/ExpLimits_'+RunName+'_'+Xname+'_'+Type+'.png'
+    plotName = 'ExpLimits_'+RunName+'_'+Xname+'_'+Type+'.png'
     WriteMacro1D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins)
 
 ###==================================================================================================
