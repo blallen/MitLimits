@@ -95,7 +95,7 @@ convertMacro.close()
 ### Execute Macro File
 ###==================================================================================================
 
-convertTask = Popen(['root','-b','-l','-q',MacroName+'.C+'],stdout=PIPE,stderr=PIPE,cwd=RootDir)
+convertTask = Popen(['root','-b','-l','-q',FileName+'+'],stdout=PIPE,stderr=PIPE,cwd=RootDir)
 (stdout, stderr) = convertTask.communicate()
 #print stdout
 print '1D Plots saved to '+os.path.join(RootDir,'DataCard_'+RunName+'_'+Yname+'_*.root')
