@@ -189,13 +189,13 @@ void LimitTask::WriteMCIntegral(const char* draw)
 
   fprintf(fCard, "%s %9s", "bin", " ");
   for (unsigned int i = 0; i < fHistsToPlot.size(); i++)
-    fprintf(fCard, "%12s", draw);
+    fprintf(fCard, "%20s", draw);
 
   fprintf(fCard, "\n%s %5s", "process", " ");
   for (unsigned int i = 0; i < fHistsToPlot.size(); i++)
     {    
       TString name = fHistsToPlot[i]->GetName();
-      fprintf(fCard, "%12s", name.Data());
+      fprintf(fCard, "%20s", name.Data());
     }
 
   fprintf(fCard, "\n%s %5s", "process", " ");
@@ -203,11 +203,11 @@ void LimitTask::WriteMCIntegral(const char* draw)
     {
       float j = i + 1;
       j -= fSigHists.size(); //need to call number of signal samples
-      fprintf(fCard, "%12.0f", j); 
+      fprintf(fCard, "%20.0f", j); 
     }
   for (unsigned int i = 0; i < fBgHists.size(); i++)
     {
-      fprintf(fCard, "%12i", i+1); 
+      fprintf(fCard, "%20i", i+1); 
     }
 
   double rate = 0;
@@ -215,7 +215,7 @@ void LimitTask::WriteMCIntegral(const char* draw)
   for (unsigned int i = 0; i < fHistsToPlot.size(); i++)
     {
       rate = fHistsToPlot[i]->Integral(GetCutBin(fHistsToPlot[i]),fHistsToPlot[i]->GetNbinsX()+1);
-      fprintf(fCard, "%12.2f", rate);
+      fprintf(fCard, "%20.2f", rate);
     }
 }
 
