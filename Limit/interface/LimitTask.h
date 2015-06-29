@@ -25,7 +25,7 @@ namespace mithep
   {
   public:
     LimitTask(TaskProcesses *taskProcesses);
-    ~LimitTask();
+    virtual ~LimitTask();
 
     // Set Up Task
     void                 SetCutVariable   (const char* var)  { fCutVariable = TString(var); }
@@ -77,7 +77,7 @@ namespace mithep
 
     TFile               *fBinnedOut;   // root file of histograms for binned shape analysis
 
-    ClassDefNV(LimitTask, 0) // LimitTask plots analysis task with various options
+    ClassDef(LimitTask, 0) // LimitTask plots analysis task with various options
   };
 }
 #endif

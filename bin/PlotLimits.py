@@ -13,14 +13,15 @@ from optparse import OptionParser
 
 def RunHiggsTool(DataCardPath,LimitToolDir):
     TextPath = DataCardPath+'.txt'
-    WorkPath = DataCardPath+'_Workspace.root'
-    WorkSpace = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/text2workspace.py',TextPath,'-o',WorkPath],
-                      stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
-    (wout, werr) = WorkSpace.communicate()
-    print wout
-    print werr
+    # WorkPath = DataCardPath+'_Workspace.root'
+    # WorkSpace = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/text2workspace.py',TextPath,'-o',WorkPath],
+    #                  stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
+    # (wout, werr) = WorkSpace.communicate()
+    # print wout
+    # print werr
 
-    HiggsTool = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/combine','-M','Asymptotic',WorkPath],
+    # HiggsTool = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/combine','-M','Asymptotic',WorkPath],
+    HiggsTool = Popen(['combine','-M','Asymptotic',TextPath],
                       stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)    
     (hout, herr) = HiggsTool.communicate()
     print hout
@@ -150,6 +151,7 @@ if opts.Yaxis:
 
 print 'Using Higgs Combination Tool in Directory: '+LimitToolDir
 
+'''
 # print LimitToolDir
 os.chdir(LimitToolDir)
 # print os.getcwd()
@@ -170,6 +172,7 @@ print os.environ['PATH']
 path = Popen('echo $PATH', shell = True,stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
 (pout, perr) = path.communicate()
 print pout
+'''
 
 ### Run Combination Tool on the data cards
 for Xbin in Xbins:

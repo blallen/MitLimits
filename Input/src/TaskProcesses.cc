@@ -1,7 +1,6 @@
 // $Id: TaskProcesses.cc,v 1.2 2014/06/27 14:24:52 fabstoec Exp $
 
 #include <TSystem.h>
-#include "MitAna/DataUtil/interface/Debug.h"
 #include "MitLimits/Input/interface/TaskProcesses.h"
 
 ClassImp(mithep::TaskProcesses)
@@ -173,12 +172,11 @@ void TaskProcesses::ReadFile(const char* dir)
 
   // open file in a pipe (leaves options for filtering)
   FILE *f = gSystem->OpenPipe((TString("cat ")+txtFile+TString("| grep -v ^#")).Data(),"r");
-  MDB(kGeneral,1) {
-    printf("           Cross Section [pb]  Dataset name                              ");
-    printf("Legend               Skim?  \n");
-    printf(" ------------------------------------------------------------------------");
-    printf("----------------------------\n");
-  }
+  printf("           Cross Section [pb]  Dataset name                              ");
+  printf("Legend               Skim?  \n");
+  printf(" ------------------------------------------------------------------------");
+  printf("----------------------------\n");
+  
   
   //Add systematics to TaskProcess
   fscanf(f,"%s %s",SystNames[0],SystNames[1]);
@@ -192,10 +190,9 @@ void TaskProcesses::ReadFile(const char* dir)
   while (fscanf(f,"%s %s %u %u",name,type,&syst[0],&syst[1])
 	 != EOF) {
     // show what was read
-    MDB(kGeneral,1)
-      printf(" adding: %-10s %-6s\n",
-	     name,type);
-
+    printf(" adding: %-10s %-6s\n",
+	   name,type);
+    
     Process *tmpProcess = 0;
     TString data = "data";
     TString sig = "sig";

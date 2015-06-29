@@ -23,7 +23,7 @@ namespace mithep
   {
   public:
     TaskProcesses(const char* name, const char* dir);
-    ~TaskProcesses() { }
+    virtual ~TaskProcesses() { }
 
     const TString          *Name      ()            const { return &fName; }
     const TString          *NameTxt   ()            const { return &fNameTxt; }
@@ -66,7 +66,7 @@ namespace mithep
     UInt_t                   fNSystematics; // number of systematics to apply to process
     std::vector<TString>    fSystematics;  // vector of systematics to apply to process
 
-    ClassDefNV(TaskProcesses, 0) // TaskProcesses manages a list of samples used in an analysis task
+    ClassDef(TaskProcesses, 0) // TaskProcesses manages a list of samples used in an analysis task
   };
 }
 #endif
