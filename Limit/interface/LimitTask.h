@@ -77,7 +77,7 @@ namespace mithep
 
     TFile               *fBinnedOut;   // root file of histograms for binned shape analysis
 
-    ClassDef(LimitTask, 0) // LimitTask plots analysis task with various options
+    ClassDefNV(LimitTask, 0) // LimitTask plots analysis task with various options
   };
 }
 #endif

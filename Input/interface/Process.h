@@ -28,7 +28,8 @@ namespace mithep
     UInt_t                   NSystematics()                   const { return fNSystematics; }
     const UInt_t            *GetSystematic(UInt_t i)         const; //return 'i'th systematic
 
-    UInt_t                  *AddSystematic(UInt_t i);
+    // UInt_t                  *AddSystematic(UInt_t i);
+    void                     AddSystematic(UInt_t i);
 
     void                     Show()                           const; // show process properties
 
@@ -38,7 +39,7 @@ namespace mithep
     UInt_t                   fNSystematics; // number of systematics to apply to process
     std::vector<UInt_t>      fSystematics;  // vector of systematics to apply to process
     
-    ClassDef(Process, 0) // Process describes all relevant aspects of a sample for plotting
+    ClassDefNV(Process, 0) // Process describes all relevant aspects of a sample for plotting
   };
 }
 #endif

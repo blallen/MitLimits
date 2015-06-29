@@ -123,7 +123,8 @@ Process *TaskProcesses::AddDataProcess(const char* name, const char* type)
 }
 
 //--------------------------------------------------------------------------------------------------
-TString *TaskProcesses::AddSystematic(const char* name)
+// TString *TaskProcesses::AddSystematic(const char* name)
+void TaskProcesses::AddSystematic(const char* name)
 {
   // Adding another systematic (vector takes care of memory management)
 
@@ -132,7 +133,8 @@ TString *TaskProcesses::AddSystematic(const char* name)
   fNSystematics++;
   delete Name;
 
-  return &fSystematics[fSystematics.size()-1];
+  // return &fSystematics[fSystematics.size()-1];
+  return;
 }
 
 
@@ -180,10 +182,11 @@ void TaskProcesses::ReadFile(const char* dir)
   
   //Add systematics to TaskProcess
   fscanf(f,"%s %s",SystNames[0],SystNames[1]);
-  TString *tmpName = 0;
+  // TString *tmpName = 0;
   for (int i = 0; i < 2; i++)
     {
-      tmpName = AddSystematic(SystNames[i]);
+      // tmpName = AddSystematic(SystNames[i]);
+      AddSystematic(SystNames[i]);
     }
     
   while (fscanf(f,"%s %s %u %u",name,type,&syst[0],&syst[1])
@@ -208,10 +211,11 @@ void TaskProcesses::ReadFile(const char* dir)
       tmpProcess = AddBgProcess(name,type);
 
     //Add systematics to process
-    UInt_t *tmpSyst = 0;
+    // UInt_t *tmpSyst = 0;
     for (int i = 0; i < 2; i++)
       {
-	tmpSyst = tmpProcess->AddSystematic(syst[i]);
+	// tmpSyst = tmpProcess->AddSystematic(syst[i]);
+	tmpProcess->AddSystematic(syst[i]);
       }
     
     // Convert '~' -> ' '

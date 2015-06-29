@@ -24,7 +24,8 @@ void Process::Show() const
 }
 
 //--------------------------------------------------------------------------------------------------
-UInt_t *Process::AddSystematic(UInt_t syst)
+// UInt_t *Process::AddSystematic(UInt_t syst)
+void Process::AddSystematic(UInt_t syst)
 {
   // Adding another systematic (vector takes care of memory management)
 
@@ -33,7 +34,8 @@ UInt_t *Process::AddSystematic(UInt_t syst)
   fNSystematics++;
   delete Syst;
 
-  return &fSystematics[fSystematics.size()-1];
+  // return &fSystematics[fSystematics.size()-1];
+  return;
 }
 
 

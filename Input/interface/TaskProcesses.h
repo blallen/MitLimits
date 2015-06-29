@@ -49,7 +49,8 @@ namespace mithep
     Process                *AddSigProcess    (const char* name, const char* type);
     Process                *AddBgProcess    (const char* name, const char* type);
 
-    TString                *AddSystematic(const char* name);
+    // TString                *AddSystematic(const char* name);
+    void                    AddSystematic(const char* name);
 
     TString                 fName;         // location of production
     TString                 fNameTxt;      // location of configuration (usually same as prod.)
@@ -65,7 +66,7 @@ namespace mithep
     UInt_t                   fNSystematics; // number of systematics to apply to process
     std::vector<TString>    fSystematics;  // vector of systematics to apply to process
 
-    ClassDef(TaskProcesses, 0) // TaskProcesses manages a list of samples used in an analysis task
+    ClassDefNV(TaskProcesses, 0) // TaskProcesses manages a list of samples used in an analysis task
   };
 }
 #endif
