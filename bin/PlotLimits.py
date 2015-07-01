@@ -23,9 +23,11 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
     # HiggsTool = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/combine','-M','Asymptotic',WorkPath],
     HiggsTool = Popen(['combine','-M','Asymptotic',TextPath],
                       stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)    
+    '''
     (hout, herr) = HiggsTool.communicate()
     print hout
     print herr
+    '''
 
     find = Popen(['grep','Expected 50.0%'],stdin=HiggsTool.stdout,stdout=PIPE,stderr=PIPE)
    
