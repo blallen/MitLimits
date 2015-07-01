@@ -3,6 +3,7 @@
 ###==================================================================================================
 from subprocess import Popen, PIPE
 import os
+import re
 from pprint import pprint
 from optparse import OptionParser
 
@@ -11,9 +12,23 @@ from optparse import OptionParser
 ###==================================================================================================
 
 def RunHiggsTool(DataCardPath,LimitToolDir):
-    HiggsTool = Popen(['combine','-M','Asymptotic',DataCardPath],
-                      stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
-    
+    TextPath = DataCardPath+'.txt'
+    # WorkPath = DataCardPath+'_Workspace.root'
+    # WorkSpace = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/text2workspace.py',TextPath,'-o',WorkPath],
+    #                  stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
+    # (wout, werr) = WorkSpace.communicate()
+    # print wout
+    # print werr
+
+    # HiggsTool = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/combine','-M','Asymptotic',WorkPath],
+    HiggsTool = Popen(['combine','-M','Asymptotic',TextPath],
+                      stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)    
+    '''
+    (hout, herr) = HiggsTool.communicate()
+    print hout
+    print herr
+    '''
+
     find = Popen(['grep','Expected 50.0%'],stdin=HiggsTool.stdout,stdout=PIPE,stderr=PIPE)
    
     lines = [line for line in find.stdout]
@@ -138,18 +153,41 @@ if opts.Yaxis:
 
 print 'Using Higgs Combination Tool in Directory: '+LimitToolDir
 
+'''
+# print LimitToolDir
+os.chdir(LimitToolDir)
+# print os.getcwd()
+proc = Popen('scram runtime -sh', shell = True, stdout = PIPE, stderr = PIPE)
+out, err = proc.communicate()
+for line in out.split('\n'):
+    matches = re.match('export ([^=]+)=(.*)', line.strip())
+    if not matches: 
+        other = re.match('unset (.*)', line.strip(';'))
+        if not other: print line
+        else: 
+            envs = other.group(1).split()
+            for env in envs:
+                os.environ.pop(env)
+    else: 
+        os.environ[matches.group(1)] = matches.group(2)
+print os.environ['PATH']
+path = Popen('echo $PATH', shell = True,stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
+(pout, perr) = path.communicate()
+print pout
+'''
+
 ### Run Combination Tool on the data cards
 for Xbin in Xbins:
     limits.append([])
     rowNumber = (Xbin - Xmin) / Xstep
     if opts.Yaxis:
         for Ybin in Ybins:
-            DataCardName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type+'.txt'
+            DataCardName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type
             DataCardPath = os.path.join('data',RunName,DataCardName)
             print 'Using DataCard: '+DataCardPath
             limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
     else:
-        DataCardName = 'DataCard_'+RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type+'.txt'
+        DataCardName = 'DataCard_'+RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type
         DataCardPath = os.path.join('data',RunName,DataCardName)
         print 'Using DataCard: '+DataCardPath
         limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
@@ -173,7 +211,7 @@ else:
     plotName = 'ExpLimits_'+RunName+'_'+Xname+'_'+Type+'.png'
     WriteMacro1D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins)
 
-###==================================================================================================
+###==================================================================================================d
 ### Run Plotting Macro
 ###==================================================================================================
 plot = Popen(['root','-b','-l','-q',FileName+'+'],stdout=PIPE,stderr=PIPE,cwd=RootDir)

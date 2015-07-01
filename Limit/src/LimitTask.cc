@@ -11,7 +11,6 @@
 #include <TLatex.h>
 #include <TTree.h>
 #include "MitCommon/Utils/interface/Utils.h"
-#include "MitAna/DataUtil/interface/Debug.h"
 #include "MitPlots/Style/interface/MitStyle.h"
 #include "MitPlots/Plot/interface/PlotTask.h"
 #include "MitLimits/Limit/interface/LimitTask.h"

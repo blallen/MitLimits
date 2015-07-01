@@ -23,7 +23,7 @@ namespace mithep
   {
   public:
     TaskProcesses(const char* name, const char* dir);
-    ~TaskProcesses() { }
+    virtual ~TaskProcesses() { }
 
     const TString          *Name      ()            const { return &fName; }
     const TString          *NameTxt   ()            const { return &fNameTxt; }
@@ -49,7 +49,8 @@ namespace mithep
     Process                *AddSigProcess    (const char* name, const char* type);
     Process                *AddBgProcess    (const char* name, const char* type);
 
-    TString                *AddSystematic(const char* name);
+    // TString                *AddSystematic(const char* name);
+    void                    AddSystematic(const char* name);
 
     TString                 fName;         // location of production
     TString                 fNameTxt;      // location of configuration (usually same as prod.)

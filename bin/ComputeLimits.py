@@ -44,7 +44,7 @@ os.environ['MIT_ROOT_DIR'] = os.path.join(os.environ['HOME'],"cms/root")
 os.environ['MIT_LMT_PYT']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/bin')
 os.environ['MIT_MCR_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros')
 os.environ['MIT_CFG_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/config')
-os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['HOME'],'cms/cmssw/032/CMSSW_6_1_1/src/HiggsAnalysis/CombinedLimit')
+os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['HOME'],'cms/cmssw/034/CMSSW_7_1_5/src/HiggsAnalysis/CombinedLimit')
 
 os.environ['MIT_LMT_CFG']  = 'boostedv-limits-datadriven'
 
@@ -80,6 +80,7 @@ if opts.Yaxis:
                           cwd=os.environ['MIT_LMT_PYT'])
     (stdout, stderr) = convertHistos.communicate()
     print stdout
+    print stderr
     
 ###==================================================================================================
 ### Make Data Cards
@@ -104,7 +105,7 @@ else:
                       cwd=os.environ['MIT_LMT_PYT'])
     (stdout, stderr) = limitTask.communicate()
     print stdout
-    print stderr
+    # print stderr
     
 ###==================================================================================================
 ### Plot Limits
@@ -119,9 +120,11 @@ for Xbin in Xbins:
             cardName = baseName+'.txt'
             cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
             cardEnd   = os.path.join(cardStorage,cardName)
+            print cardStart
+            print cardEnd
             os.renames(cardStart,cardEnd)
             if Type == 'Binned':
-                print Type
+                # print Type
                 shapeName = baseName+'.root'
                 shapeStart = os.path.join(os.environ['MIT_ROOT_DIR'],shapeName)
                 shapeEnd   = os.path.join(cardStorage,shapeName)

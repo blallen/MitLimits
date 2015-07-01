@@ -25,7 +25,7 @@ namespace mithep
   {
   public:
     LimitTask(TaskProcesses *taskProcesses);
-    ~LimitTask();
+    virtual ~LimitTask();
 
     // Set Up Task
     void                 SetCutVariable   (const char* var)  { fCutVariable = TString(var); }

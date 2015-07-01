@@ -1,7 +1,6 @@
 // $Id: TaskProcesses.cc,v 1.2 2014/06/27 14:24:52 fabstoec Exp $
 
 #include <TSystem.h>
-#include "MitAna/DataUtil/interface/Debug.h"
 #include "MitLimits/Input/interface/TaskProcesses.h"
 
 ClassImp(mithep::TaskProcesses)
@@ -123,7 +122,8 @@ Process *TaskProcesses::AddDataProcess(const char* name, const char* type)
 }
 
 //--------------------------------------------------------------------------------------------------
-TString *TaskProcesses::AddSystematic(const char* name)
+// TString *TaskProcesses::AddSystematic(const char* name)
+void TaskProcesses::AddSystematic(const char* name)
 {
   // Adding another systematic (vector takes care of memory management)
 
@@ -132,7 +132,8 @@ TString *TaskProcesses::AddSystematic(const char* name)
   fNSystematics++;
   delete Name;
 
-  return &fSystematics[fSystematics.size()-1];
+  // return &fSystematics[fSystematics.size()-1];
+  return;
 }
 
 
@@ -171,28 +172,27 @@ void TaskProcesses::ReadFile(const char* dir)
 
   // open file in a pipe (leaves options for filtering)
   FILE *f = gSystem->OpenPipe((TString("cat ")+txtFile+TString("| grep -v ^#")).Data(),"r");
-  MDB(kGeneral,1) {
-    printf("           Cross Section [pb]  Dataset name                              ");
-    printf("Legend               Skim?  \n");
-    printf(" ------------------------------------------------------------------------");
-    printf("----------------------------\n");
-  }
+  printf("           Cross Section [pb]  Dataset name                              ");
+  printf("Legend               Skim?  \n");
+  printf(" ------------------------------------------------------------------------");
+  printf("----------------------------\n");
+  
   
   //Add systematics to TaskProcess
   fscanf(f,"%s %s",SystNames[0],SystNames[1]);
-  TString *tmpName = 0;
+  // TString *tmpName = 0;
   for (int i = 0; i < 2; i++)
     {
-      tmpName = AddSystematic(SystNames[i]);
+      // tmpName = AddSystematic(SystNames[i]);
+      AddSystematic(SystNames[i]);
     }
     
   while (fscanf(f,"%s %s %u %u",name,type,&syst[0],&syst[1])
 	 != EOF) {
     // show what was read
-    MDB(kGeneral,1)
-      printf(" adding: %-10s %-6s\n",
-	     name,type);
-
+    printf(" adding: %-10s %-6s\n",
+	   name,type);
+    
     Process *tmpProcess = 0;
     TString data = "data";
     TString sig = "sig";
@@ -208,10 +208,11 @@ void TaskProcesses::ReadFile(const char* dir)
       tmpProcess = AddBgProcess(name,type);
 
     //Add systematics to process
-    UInt_t *tmpSyst = 0;
+    // UInt_t *tmpSyst = 0;
     for (int i = 0; i < 2; i++)
       {
-	tmpSyst = tmpProcess->AddSystematic(syst[i]);
+	// tmpSyst = tmpProcess->AddSystematic(syst[i]);
+	tmpProcess->AddSystematic(syst[i]);
       }
     
     // Convert '~' -> ' '

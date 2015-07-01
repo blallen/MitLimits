@@ -79,6 +79,6 @@ limitMacro.close()
 limitTask = Popen(['root','-b','-l','-q',FileName+'+'],stdout=PIPE,stderr=PIPE,cwd=RootDir)
 (stdout, stderr) = limitTask.communicate()
 print stdout
-#print stderr
+print stderr
 
 exit(-1)
