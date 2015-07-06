@@ -1,34 +1,23 @@
-###==================================================================================================
-### Script to Run Higgs Combination Tool on Pre-existing Data Cards to Produce a 2D plot of expected Limits
-###==================================================================================================
+###======================================================================================
+### Script to Run Higgs Combination Tool on Pre-existing Data Cards to Produce a plot of 
+### expected Limits
+###======================================================================================
 from subprocess import Popen, PIPE
 import os
 import re
 from pprint import pprint
 from optparse import OptionParser
+from ROOT import *
 
-###==================================================================================================
+###======================================================================================
 ### Function to Run Higgs Tool and Get Expected Limit for a DataCard
-###==================================================================================================
+###======================================================================================
 
 def RunHiggsTool(DataCardPath,LimitToolDir):
     TextPath = DataCardPath+'.txt'
-    # WorkPath = DataCardPath+'_Workspace.root'
-    # WorkSpace = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/text2workspace.py',TextPath,'-o',WorkPath],
-    #                  stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
-    # (wout, werr) = WorkSpace.communicate()
-    # print wout
-    # print werr
-
-    # HiggsTool = Popen(['/home/ballen/cms/cmssw/040/CMSSW_7_1_5/bin/slc6_amd64_gcc481/combine','-M','Asymptotic',WorkPath],
     HiggsTool = Popen(['combine','-M','Asymptotic',TextPath],
                       stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)    
-    '''
-    (hout, herr) = HiggsTool.communicate()
-    print hout
-    print herr
-    '''
-
+   
     find = Popen(['grep','Expected 50.0%'],stdin=HiggsTool.stdout,stdout=PIPE,stderr=PIPE)
    
     lines = [line for line in find.stdout]
@@ -38,67 +27,47 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
         if tmp:
             return tmp[4]
         
-###==================================================================================================
+###======================================================================================
 ### Function to Write Limits to a 2D Plotting Macro
-###==================================================================================================
+###======================================================================================
         
-def WriteMacro2D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins,Ymin,Ymax,Ystep,Ybins):
-### Open file
-    plotMacro = open(FileName, 'w')
-    
-### write header
-    plotMacro.write('#include "MitPlots/Style/interface/MitStyle.h" \n #include "MitLimits/Limit/interface/LimitTask.h" \n #include "TLegend.h" \n #include "TH2.h" \n #include "TH2D.h" \n #include "TStyle.h" \n using namespace std; \n using namespace mithep; \n //================================================================================================== \n\n')
-    plotMacro.write('void '+MacroName+'() \n{\n')
+def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
+    canvas = TCanvas()
+    hExpectedLimits = TH2D("ExpLimit", "Expected Model Independent Limits",len(Xbins),float(Xbins[0]),float(Xbins[-1]+Xstep),len(Ybins),float(Ybins[-1]),float(Ybins[0]+Ystep))
+    hExpectedLimits.SetMarkerSize(2.5)
+    hExpectedLimits.GetZaxis().SetTitle("Expected Limit")
+    hExpectedLimits.GetYaxis().SetTitle(Yname)
+    hExpectedLimits.GetXaxis().SetTitle(Xname)
 
-### configure graphics stuff
-    plotMacro.write('// setup graphics stuff before starting \n MitStyle::Init(); \n TStyle *MitStyle = gStyle;// new TStyle("MIT-Style","The Perfect Style for Plots ;-)");\n\n MitStyle->SetCanvasDefW      (1000);\n MitStyle->SetPadBottomMargin(0.18);\n MitStyle->SetPadLeftMargin  (0.18);\n MitStyle->SetPadRightMargin (0.18);\n\n MitStyle->SetTitleFont  (42   ,"Z");\n MitStyle->SetTitleSize  (0.055,"Z");\n MitStyle->SetTitleOffset(1.700,"Z");\n MitStyle->SetLabelOffset(0.010,"Z");\n MitStyle->SetLabelSize  (0.050,"Z");\n MitStyle->SetLabelFont  (42   ,"Z");\n MitStyle->SetTickLength (-0.01,"Z");\n MitStyle->SetTitleFont  (42,"Z");\n\n')
-    
-### Set up histogram
-    plotMacro.write('TCanvas *canvas = new TCanvas;\n TH2D* hExpectedLimits = new TH2D("ExpLimit", "Expected Model Independent Limits",'+str(len(Xbins))+','+str(Xmin)+','+str(Xmax+Xstep)+','+str(len(Ybins))+','+str(Ymin)+','+str(Ymax+Ystep)+');\n MitStyle::InitHistWide(hExpectedLimits,"'+Xname+'","'+Yname+'",kBlack);\n hExpectedLimits->SetMarkerSize(2.5);\n hExpectedLimits->GetZaxis()->SetTitle("Expected Limit");\n\n')
-
-### Fill histogram with limits
     for row, Xbin in zip(limits,Xbins):
         for limit, Ybin in zip(row,Ybins):
-            plotMacro.write('hExpectedLimits->Fill('+str(Xbin)+','+str(Ybin)+','+str(limit)+');\n')
-            plotMacro.write('\n')
-        
-### Draw and Save Histogram
-    plotMacro.write('hExpectedLimits->Draw("colz");\n hExpectedLimits->Draw("sameTEXT");\n canvas->SaveAs("'+plotName+'");\n}\n')
-    plotMacro.close()
+            hExpectedLimits.Fill(float(Xbin),float(Ybin),float(limit))
 
-###==================================================================================================
+    hExpectedLimits.Draw("colz")
+    hExpectedLimits.Draw("sameTEXT")
+    canvas.SaveAs(plotName)
+
+###======================================================================================
 ### Function to Write Limits to a 1D Plotting Macro
-###==================================================================================================
+###======================================================================================
 
-def WriteMacro1D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins):
-### Open file
-    plotMacro = open(FileName, 'w')
-        
-### write header
-    plotMacro.write('#include "MitPlots/Style/interface/MitStyle.h" \n #include "MitLimits/Limit/interface/LimitTask.h" \n #include "TLegend.h" \n #include "TH1.h" \n #include "TH1D.h" \n #include "TStyle.h" \n using namespace std; \n using namespace mithep; \n //================================================================================================== \n\n')
-    plotMacro.write('void '+MacroName+'() \n{\n')
+def MakePlot1D(limits,plotName,Xstep,Xbins,Xname):
+    canvas = TCanvas()
+    hExpectedLimits = TH1D("ExpLimit", "Expected Model Independent Limits",len(Xbins),float(Xbins[0]),float(Xbins[-1]+Xstep))
+    hExpectedLimits.SetMarkerSize(2.5)
+    hExpectedLimits.GetYaxis().SetTitle("Expected Limit")
+    hExpectedLimits.GetXaxis().SetTitle(Xname)
     
-### configure graphics stuff
-    plotMacro.write('// setup graphics stuff before starting \n MitStyle::Init(); \n TStyle *MitStyle = gStyle;// new TStyle("MIT-Style","The Perfect Style for Plots ;-)");\n\n MitStyle->SetCanvasDefW      (1000);\n MitStyle->SetPadBottomMargin(0.18);\n MitStyle->SetPadLeftMargin  (0.18);\n MitStyle->SetPadRightMargin (0.18);\n\n ')
-    
-### Set up histogram
-    plotMacro.write('TCanvas *canvas = new TCanvas;\n TH1D* hExpectedLimits = new TH1D("ExpLimit", "Expected Model Independent Limits",'+str(len(Xbins))+','+str(Xmin)+','+str(Xmax+Xstep)+');\n MitStyle::InitHistWide(hExpectedLimits,"'+Xname+'","Expected Limits",kBlack);\n hExpectedLimits->SetMarkerSize(2.5);\n\n')
-    
-### Fill histogram with limits
     for row, Xbin in zip(limits,Xbins):
         for limit in row:
-            plotMacro.write('hExpectedLimits->Fill('+str(Xbin)+','+str(limit)+');\n')
-            plotMacro.write('\n')
+            hExpectedLimits.Fill(float(Xbin),float(limit))
             
-### Draw and Save Histogram
-        
-    plotMacro.write('hExpectedLimits->Draw("hist");\n;\n canvas->SaveAs("'+plotName+'");\n}\n')
-    plotMacro.close()
+    hExpectedLimits.Draw("hist")
+    canvas.SaveAs(plotName)
 
-
-###==================================================================================================
+###======================================================================================
 ### Set Up Input Options
-###==================================================================================================
+###======================================================================================
 
 parser = OptionParser()
 parser.add_option('-R', help='Unique Name to Specify this Run', dest='RunName', action='store', metavar='<name>')
@@ -122,11 +91,11 @@ if (opts.Yname and not opts.Yaxis) or (opts.Yaxis and not opts.Yname):
     parser.print_help()
     exit(-1)
         
-###==================================================================================================
+###======================================================================================
 ### Initialize the variables!
-###==================================================================================================
+###======================================================================================
 
-LimitToolDir = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['HOME'],'cms/cmssw/032/CMSSW_6_1_1/src/HiggsAnalysis/CombinedLimit'))
+LimitToolDir = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['HOME'],'cms/cmssw/034/CMSSW_7_1_5/src/HiggsAnalysis/CombinedLimit'))
 MacroDir     = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros'))
 RootDir      = os.getenv('MIT_ROOT_DIR', os.path.join(os.environ['HOME'],"cms/root"))
 
@@ -147,34 +116,11 @@ if opts.Yaxis:
     Ybins = range(Ymax, Ymin-Ystep, -Ystep)
 
 
-###==================================================================================================
+###======================================================================================
 ### Run Higgs Combination Tool to Find Limits
-###==================================================================================================
+###======================================================================================
 
 print 'Using Higgs Combination Tool in Directory: '+LimitToolDir
-
-'''
-# print LimitToolDir
-os.chdir(LimitToolDir)
-# print os.getcwd()
-proc = Popen('scram runtime -sh', shell = True, stdout = PIPE, stderr = PIPE)
-out, err = proc.communicate()
-for line in out.split('\n'):
-    matches = re.match('export ([^=]+)=(.*)', line.strip())
-    if not matches: 
-        other = re.match('unset (.*)', line.strip(';'))
-        if not other: print line
-        else: 
-            envs = other.group(1).split()
-            for env in envs:
-                os.environ.pop(env)
-    else: 
-        os.environ[matches.group(1)] = matches.group(2)
-print os.environ['PATH']
-path = Popen('echo $PATH', shell = True,stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)
-(pout, perr) = path.communicate()
-print pout
-'''
 
 ### Run Combination Tool on the data cards
 for Xbin in Xbins:
@@ -196,30 +142,13 @@ print '\nExpected Limits'
 pprint(limits)
 
 
-###==================================================================================================
-### Write limits to plotting Macro
-###==================================================================================================
+###======================================================================================
+### Plot Limits
+###======================================================================================
 if opts.Yaxis:
-    MacroName = "PlotExpectedLimits_"+RunName+"_"+Yname+"_"+Xname+"_"+Type
-    FileName = os.path.join(MacroDir,MacroName+".C")
     plotName = 'ExpLimits_'+RunName+'_'+Yname+'_'+Xname+'_'+Type+'.png'
-    WriteMacro2D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins,Ymin,Ymax,Ystep,Ybins)
+    MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname)
 
 else:
-    MacroName = "PlotExpectedLimits_"+RunName+'_'+Xname+"_"+Type
-    FileName = os.path.join(MacroDir,MacroName+".C")
     plotName = 'ExpLimits_'+RunName+'_'+Xname+'_'+Type+'.png'
-    WriteMacro1D(limits,MacroName,FileName,plotName,Xmin,Xmax,Xstep,Xbins)
-
-###==================================================================================================d
-### Run Plotting Macro
-###==================================================================================================
-plot = Popen(['root','-b','-l','-q',FileName+'+'],stdout=PIPE,stderr=PIPE,cwd=RootDir)
-(stdout, stderr) = plot.communicate()
-#print stdout
-#print stderr
-plotPath = os.path.join(RootDir,plotName)
-print 'Expected Limits Plot saved to '+plotPath
-os.system('display '+plotPath+' &')
-
-exit()
+    MakePlot1D(limits,plotName,Xstep,Xbins,Xname)

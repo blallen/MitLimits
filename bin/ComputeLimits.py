@@ -1,13 +1,13 @@
-###==================================================================================================
+###======================================================================================
 ### Script to Go From nTuples to Datacards and Calculate Expected Limits
-###==================================================================================================
+###======================================================================================
 from subprocess import Popen, PIPE
 import os
 from optparse import OptionParser
 
-###==================================================================================================
+###======================================================================================
 ### Set Up Input Options
-###==================================================================================================
+###======================================================================================
 
 parser = OptionParser()
 parser.add_option('-R', help='Unique Name to Specify this Run', dest='RunName', action='store', metavar='<name>')
@@ -34,9 +34,9 @@ if (opts.Yname and not opts.Yaxis) or (opts.Yaxis and not opts.Yname):
 
 (opts, args) = parser.parse_args()
 
-###==================================================================================================
+###======================================================================================
 ### Initialize the variables!
-###==================================================================================================
+###======================================================================================
 
 os.environ['MIT_LMT_DIR']  = os.path.join(os.environ['CMSSW_BASE'], 'src/MitLimits')
 os.environ['MIT_ROOT_DIR'] = os.path.join(os.environ['HOME'],"cms/root")
@@ -50,9 +50,6 @@ os.environ['MIT_LMT_CFG']  = 'boostedv-limits-datadriven'
 
 os.environ['MIT_PROD_CFG'] = 'boostedv-v5'
 os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/'
-
-
-
 
 RunName = opts.RunName
 Type = opts.Type
@@ -69,47 +66,50 @@ if opts.Yaxis:
     Ystep = opts.Yaxis[2]
     Ybins = range(Ymax, Ymin-Ystep, -Ystep)
 
-###==================================================================================================
+###======================================================================================
 ### Convert 2D Plots to 1D Plots
-###==================================================================================================
+###======================================================================================
 if opts.Yaxis:
-    convertHistos = Popen(['python','./Convert2Dto1D.py',
+    ConvertPath = os.path.join(os.environ['MIT_LMT_PYT'], 'Convert2Dto1D.py')
+    convertHistos = Popen(['python',ConvertPath,
                            '-R',RunName,'-X',Xname,
                            '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname],
                           stdout=PIPE,stderr=PIPE,
-                          cwd=os.environ['MIT_LMT_PYT'])
+                          cwd=os.environ['MIT_ROOT_DIR'])
     (stdout, stderr) = convertHistos.communicate()
     print stdout
     print stderr
     
-###==================================================================================================
+###======================================================================================
 ### Make Data Cards
-###==================================================================================================
+###======================================================================================
+MakePath = os.path.join(os.environ['MIT_LMT_PYT'], 'MakeDataCards.py')
 if opts.Yaxis:
     tmpFileName = 'DataCard_'+RunName+'_'+Yname
     for Ybin in Ybins:
         RootFileName = tmpFileName+"_"+str(Ybin)+"_"+Xname
-        limitTask = Popen(['python','./MakeDataCards.py',
+        limitTask = Popen(['python',MakePath,
                            '-R',RootFileName,'-T',Type,'-x',
                            str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
                           stdout=PIPE,stderr=PIPE,
-                          cwd=os.environ['MIT_LMT_PYT'])
+                          cwd=os.environ['MIT_ROOT_DIR'])
         (stdout, stderr) = limitTask.communicate()
         print stdout
+        print stderr
 else:
     RootFileName = 'DataCard_'+RunName+'_'+Xname
-    limitTask = Popen(['python','./MakeDataCards.py',
+    limitTask = Popen(['python',MakePath,
                        '-R',RootFileName,'-T',Type,'-x',
                        str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
                       stdout=PIPE,stderr=PIPE,
-                      cwd=os.environ['MIT_LMT_PYT'])
+                      cwd=os.environ['MIT_ROOT_DIR'])
     (stdout, stderr) = limitTask.communicate()
     print stdout
-    # print stderr
+    print stderr
     
-###==================================================================================================
+###======================================================================================
 ### Plot Limits
-###==================================================================================================
+###======================================================================================
 cardStorage = os.path.join(os.environ['MIT_LMT_TOOL'],'data',opts.RunName)
 #print cardStorage
 
@@ -120,11 +120,8 @@ for Xbin in Xbins:
             cardName = baseName+'.txt'
             cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
             cardEnd   = os.path.join(cardStorage,cardName)
-            print cardStart
-            print cardEnd
             os.renames(cardStart,cardEnd)
             if Type == 'Binned':
-                # print Type
                 shapeName = baseName+'.root'
                 shapeStart = os.path.join(os.environ['MIT_ROOT_DIR'],shapeName)
                 shapeEnd   = os.path.join(cardStorage,shapeName)
@@ -142,18 +139,19 @@ for Xbin in Xbins:
             os.renames(shapeStart,shapeEnd)
         
             
+PlotPath = os.path.join(os.environ['MIT_LMT_PYT'], 'PlotLimits.py')
 if opts.Yaxis:
-    plotLimits = Popen(['python','./PlotLimits.py',
+    plotLimits = Popen(['python',PlotPath,
                         '-R',RunName,'-T',Type,
                         '-x',str(Xmin),str(Xmax),str(Xstep),'-X',Xname,
                         '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname],
-                       cwd=os.environ['MIT_LMT_PYT'])
+                       stderr = PIPE,
+                       cwd=os.environ['MIT_ROOT_DIR'])
 else:
-    plotLimits = Popen(['python','./PlotLimits.py',
+    plotLimits = Popen(['python',PlotPath,
                         '-R',RunName,'-T',Type,
                         '-x',str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
-                       cwd=os.environ['MIT_LMT_PYT'])
-#plotLimits.communicate()
-
-
+                       stderr = PIPE,
+                       cwd=os.environ['MIT_ROOT_DIR'])
+print plotLimits.communicate()[1]
 exit()

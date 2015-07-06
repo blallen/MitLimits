@@ -1,13 +1,14 @@
-###==================================================================================================
-### Script to Run Limit Task to Generate DataCards from Existing Root Files of 1D Histograms
-###==================================================================================================
+###======================================================================================
+### Script to Run Limit Task to Generate DataCards from Existing Root Files of 1D Histos
+###======================================================================================
 from subprocess import Popen, PIPE
 import os
 from optparse import OptionParser
+from ROOT import *
 
-###==================================================================================================
+###======================================================================================
 ### Set Up Input Options
-###==================================================================================================
+###======================================================================================
 
 parser = OptionParser()
 parser.add_option('-R', help='Root File to extract limits from', dest='RootFileName', action='store', metavar='<name>')
@@ -26,9 +27,9 @@ for m in mandatories:
 
 (opts, args) = parser.parse_args()
 
-###==================================================================================================
+###======================================================================================
 ### Initialize the variables!
-###==================================================================================================
+###======================================================================================
 
 LimitDir    = os.getenv('MIT_LMT_DIR', os.path.join(os.environ['CMSSW_BASE'], 'src/MitLimits'))
 MacroDir    = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros'))
@@ -45,40 +46,28 @@ Xmax = opts.Xaxis[1]
 Xstep = opts.Xaxis[2]
 Xbins = range(Xmin, Xmax+Xstep, Xstep)
 
-###==================================================================================================
-### Write Macro File
-###==================================================================================================
 
-MacroName = 'basicBoostedVLimits_'+Xname+"_"+Type
-FileName = os.path.join(MacroDir,MacroName+'.C')
-limitMacro = open(FileName, 'w')
+###======================================================================================
+### Make Data Cards
+###======================================================================================
 
-### Write Header ###
-limitMacro.write('#include <TSystem.h> \n#include "MitLimits/Limit/interface/LimitTask.h" \nusing namespace std; \nusing namespace mithep; \n//==================================================================================================\n\n')
-limitMacro.write('void '+MacroName+'() \n{\n\n')
+gSystem.Load('libMitLimitsInput.so')
+gSystem.Load('libMitLimitsLimit.so')
 
-### Set Sys Env Var ###
-limitMacro.write('gSystem->Setenv("MIT_LMT_DIR","'+LimitDir+'"); \ngSystem->Setenv("MIT_PROD_CFG","'+ProdConfig+'"); \ngSystem->Setenv("MIT_ANA_HIST","'+AnaHist+'"); \ngSystem->Setenv("MIT_LMT_CFG","'+LimitConfig+'"); \n\n')
+gSystem.Setenv("MIT_LMT_DIR",LimitDir)
+gSystem.Setenv("MIT_PROD_CFG",ProdConfig) 
+gSystem.Setenv("MIT_ANA_HIST",AnaHist)
+gSystem.Setenv("MIT_LMT_CFG",LimitConfig) 
 
-### Initialize limit task
-limitMacro.write('LimitTask *limitTask = 0; \nlimitTask = new LimitTask(0); \nlimitTask->SetCutVariable("'+Xname+'"); \nlimitTask->SetRootFileName("'+RootFileName+'");\n\n')
+limitTask = mithep.LimitTask(0)
+limitTask.SetCutVariable(Xname)
+limitTask.SetRootFileName(RootFileName)
 
-### Generate Data Cards ###
+#temp = mithep.CardType(1)
+if Type == 'Integral': temp = 0
+elif Type == 'Binned': temp = 1
+elif Type == 'Unbinned': temp = 2
+
 for Xbin in Xbins:
-    limitMacro.write('limitTask->SetCutValue('+str(Xbin)+');\n')
-    limitMacro.write('limitTask->WriteDataCard('+Type+');\n\n')
-
-### Close Macro ###
-limitMacro.write('delete limitTask; \nreturn; \n}\n\n')
-limitMacro.close()
-
-###==================================================================================================
-### Execute Macro File
-###==================================================================================================
-
-limitTask = Popen(['root','-b','-l','-q',FileName+'+'],stdout=PIPE,stderr=PIPE,cwd=RootDir)
-(stdout, stderr) = limitTask.communicate()
-print stdout
-print stderr
-
-exit(-1)
+    limitTask.SetCutValue(Xbin)
+    limitTask.WriteDataCard(temp)
