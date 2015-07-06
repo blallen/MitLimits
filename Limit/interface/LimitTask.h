@@ -25,7 +25,7 @@ namespace mithep
   {
   public:
     LimitTask(TaskProcesses *taskProcesses);
-    virtual ~LimitTask();
+    /*virtual*/ ~LimitTask();
 
     // Set Up Task
     void                 SetCutVariable   (const char* var)  { fCutVariable = TString(var); }
@@ -33,7 +33,7 @@ namespace mithep
     void                 SetRootFileName  (const char* file) { fRootFileName = TString(file); }
         
     // Write Data Card from nTuples
-    void                 WriteDataCard       (CardType cType);
+    void                 WriteDataCard       (int cType);
 					      
   private:        
     // Open ROOT file and read histograms
@@ -77,7 +77,7 @@ namespace mithep
 
     TFile               *fBinnedOut;   // root file of histograms for binned shape analysis
 
-    ClassDef(LimitTask, 0) // LimitTask plots analysis task with various options
+    ClassDefNV(LimitTask, 0) // LimitTask plots analysis task with various options
   };
 }
 #endif

@@ -54,7 +54,7 @@ LimitTask::LimitTask(TaskProcesses *taskProcesses) :
 LimitTask::~LimitTask()
 {
   // Destructor
-
+  /*
   if (fTask)
     delete fTask;
   if (fDataHist)
@@ -63,22 +63,23 @@ LimitTask::~LimitTask()
   // I do not understand why when deleting the histograms I get a crash but I do, so I just clear
   // which will leave me all the histograms dangeling around
 
-  //for (unsigned int i=0; i<fHists.size(); ++i) {
-  //  delete fHists[i];
-  //}
-  fSigHists.clear();
-  //for (unsigned int i=0; i<fStackedHists.size(); ++i) {
-  //  delete fStackedHists[i];
-  //}
-  fBgHists.clear();
-  //for (unsigned int i=0; i<fHistsToPlot.size(); ++i) {
-  //  delete fHistsToPlot[i];
-  //}
-  fHistsToPlot.clear();
+  for (unsigned int i=0; i<fSigHists.size(); ++i) {
+    delete fSigHists[i];
+  }
+  // fSigHists.clear();
+  for (unsigned int i=0; i<fBgHists.size(); ++i) {
+    delete fBgHists[i];
+  }
+  // fBgHists.clear();
+  for (unsigned int i=0; i<fHistsToPlot.size(); ++i) {
+    delete fHistsToPlot[i];
+  }
+  // fHistsToPlot.clear();
+  */
 }
 
 //--------------------------------------------------------------------------------------------------
-void LimitTask::WriteDataCard(CardType cType)
+void LimitTask::WriteDataCard(int cType)
 {
 
   // Interface to producing all type of data cards
