@@ -17,9 +17,9 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
     TextPath = DataCardPath+'.txt'
     HiggsTool = Popen(['combine','-M','Asymptotic',TextPath],
                       stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)    
-   
+
     find = Popen(['grep','Expected 50.0%'],stdin=HiggsTool.stdout,stdout=PIPE,stderr=PIPE)
-   
+    
     lines = [line for line in find.stdout]
 
     for line in lines:
@@ -128,13 +128,13 @@ for Xbin in Xbins:
     rowNumber = (Xbin - Xmin) / Xstep
     if opts.Yaxis:
         for Ybin in Ybins:
-            DataCardName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type
+            DataCardName = RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type
             DataCardPath = os.path.join('data',RunName,DataCardName)
             print 'Using DataCard: '+DataCardPath
             limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
     else:
-        DataCardName = 'DataCard_'+RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type
-        DataCardPath = os.path.join('data',RunName,DataCardName)
+        DataCardName = RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type
+        DataCardPath = os.path.join('data',RunName+'_'+Xname,DataCardName)
         print 'Using DataCard: '+DataCardPath
         limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
 

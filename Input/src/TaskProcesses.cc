@@ -2,6 +2,9 @@
 
 #include <TSystem.h>
 #include "MitLimits/Input/interface/TaskProcesses.h"
+#include "TObjArray.h"
+#include "TObjString.h"
+#include <fstream>
 
 ClassImp(mithep::TaskProcesses)
 
@@ -123,14 +126,17 @@ Process *TaskProcesses::AddDataProcess(const char* name, const char* type)
 
 //--------------------------------------------------------------------------------------------------
 // TString *TaskProcesses::AddSystematic(const char* name)
-void TaskProcesses::AddSystematic(const char* name)
+void TaskProcesses::AddSystematic(const char* name, const char* type)
 {
   // Adding another systematic (vector takes care of memory management)
 
   TString *Name = new TString(name);
+  TString *Type = new TString(type);
   fSystematics.push_back(*Name);
+  fSystTypes.push_back(*Type);
   fNSystematics++;
   delete Name;
+  delete Type;
 
   // return &fSystematics[fSystematics.size()-1];
   return;
@@ -149,13 +155,20 @@ const TString *TaskProcesses::GetSystematic(UInt_t iSystematic) const
 }
 
 //--------------------------------------------------------------------------------------------------
+const TString *TaskProcesses::GetSystType(UInt_t iSystematic) const
+{
+  // Get sample corresponding to given sample number. Return NULL pointer if index out of range.
+
+  if (iSystematic >= fNSystematics)
+    return 0;
+
+  return &fSystTypes[iSystematic];
+}
+
+//--------------------------------------------------------------------------------------------------
 void TaskProcesses::ReadFile(const char* dir)
 {
   // Reading the full task setup from a single file
-
-  char    name[1024], type[1024], SystNames[5][1024]; //legend[1024], json[1024];
-  //float   xsec,scale,overlap;
-  UInt_t syst[5];
 
   Long64_t size;
   Long_t   id, flags, modtime;
@@ -171,13 +184,72 @@ void TaskProcesses::ReadFile(const char* dir)
   }
 
   // open file in a pipe (leaves options for filtering)
-  FILE *f = gSystem->OpenPipe((TString("cat ")+txtFile+TString("| grep -v ^#")).Data(),"r");
+  // FILE *f = gSystem->OpenPipe((TString("cat ")+txtFile+TString("| grep -v ^#")).Data(),"r");
+  ifstream f(txtFile.Data());
   printf("           Cross Section [pb]  Dataset name                              ");
   printf("Legend               Skim?  \n");
   printf(" ------------------------------------------------------------------------");
   printf("----------------------------\n");
   
+  string line;
+  TString *lines[66];
+  UInt_t nSyst = 0;
+  while (getline(f, line))
+    {
+      lines[nSyst] = new TString(line);
+      nSyst++;
+    }
   
+  TString    name, type, region, SystName, SystType, SystValue;
+
+  Process *tmpProcess = 0;
+  TString data = "data";
+  TString sig = "sig";
+
+  TObjArray *process = lines[0]->Tokenize("\t ");
+  TObjArray *ptype = lines[1]->Tokenize("\t ");
+  //  TObjArray *pregion = lines[2]->Tokenize("\t ");
+  TObjArray *tmpsyst = 0;
+  // printf("\n Number of entries in (first, second) line: (%i, %i) \n", process->GetEntries(),ptype->GetEntries());
+  for (Int_t i0 = 1; (i0 < process->GetEntries()) && (i0 < ptype->GetEntries()); i0++) {
+    name = ((TObjString*)process->At(i0))->String();
+    type = ((TObjString*)ptype->At(i0))->String();
+    // region = ((TObjString*)pregion->At(i0))->String();
+    
+    // show what was read
+    printf(" adding: %-10s %-6s\n",
+	   name.Data(),type.Data()); // ,region.Data());
+    
+    if (type == data)                                          // found the data process
+      tmpProcess = AddDataProcess(name.Data(),type.Data());
+    else if (type == sig)                                      // define new signal process
+      tmpProcess = AddSigProcess(name.Data(),type.Data());   
+    else                                                       // define new background process
+      tmpProcess = AddBgProcess(name.Data(),type.Data());
+    
+    for (UInt_t i1 = 2; i1 < nSyst; i1++) {
+      tmpsyst = lines[i1]->Tokenize("\t ");
+      // printf("\n Number of entries in %i line: %i \n", i1, tmpsyst->GetEntries());
+            
+      if (i0 == 1) {
+	SystName = ((TObjString*)tmpsyst->At(0))->String();
+	SystType = ((TObjString*)tmpsyst->At(1))->String();
+	AddSystematic(SystName,SystType);
+      }
+
+      SystValue = ((TObjString*)tmpsyst->At(i0+1))->String();
+      tmpProcess->AddSystematic(SystValue);
+      
+      delete tmpsyst;
+    }
+  }
+  
+  delete process;
+  delete ptype;
+  
+  f.close();
+
+  /*
   //Add systematics to TaskProcess
   fscanf(f,"%s %s",SystNames[0],SystNames[1]);
   // TString *tmpName = 0;
@@ -220,7 +292,8 @@ void TaskProcesses::ReadFile(const char* dir)
     //tmpLegend.ReplaceAll(TString("~"),TString(" "));
     //tmpProcess->SetLegend(tmpLegend.Data());
   }
-  gSystem->ClosePipe(f);
-
+  */
+  // gSystem->ClosePipe(f);
+  
   return;
 }

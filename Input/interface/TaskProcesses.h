@@ -39,6 +39,7 @@ namespace mithep
 
     UInt_t                   NSystematics()                   const { return fNSystematics; }
     const TString           *GetSystematic(UInt_t i)         const; //return 'i'th systematic
+    const TString           *GetSystType(UInt_t i)         const; //return the type of the 'i'th systematic
 
     
 
@@ -50,7 +51,7 @@ namespace mithep
     Process                *AddBgProcess    (const char* name, const char* type);
 
     // TString                *AddSystematic(const char* name);
-    void                    AddSystematic(const char* name);
+    void                    AddSystematic(const char* name, const char* type);
 
     TString                 fName;         // location of production
     TString                 fNameTxt;      // location of configuration (usually same as prod.)
@@ -65,6 +66,7 @@ namespace mithep
 
     UInt_t                   fNSystematics; // number of systematics to apply to process
     std::vector<TString>    fSystematics;  // vector of systematics to apply to process
+    std::vector<TString>    fSystTypes; // vector of type of systematics
 
     ClassDef(TaskProcesses, 0) // TaskProcesses manages a list of samples used in an analysis task
   };

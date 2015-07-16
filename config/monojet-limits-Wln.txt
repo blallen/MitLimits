@@ -1,0 +1,5 @@
+Process				singlemuon_data	singlemuon_wjets	singlemuon_top	singlemuon_zll	singlemuon_dibosons	singlemuon_qcd
+PType				data		bg			bg		bg		bg		     	bg
+syst_Wjets_bkg1		lnN	0		0			1.1		1.1		1.1			1.1
+syst_Wjets_t1		lnN	0		1.1			0		0		0			0
+syst_norm_Wjets		lnU	0		2.0			0		0		0			0

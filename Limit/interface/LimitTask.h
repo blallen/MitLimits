@@ -41,7 +41,9 @@ namespace mithep
 
     // Write Header for any Data Card
     void                 WriteHeader         ();
+    TString              GetSystValue        (const char* type, const char* syst);
     void                 WriteSystematics    ();
+
 
     // Functions for counting experiment cards
     void                 WriteDataIntegral   (const char* draw);

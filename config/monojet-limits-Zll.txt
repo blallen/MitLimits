@@ -1,0 +1,5 @@
+Process				dimuon_data	dimuon_zll	dimuon_wjets	dimuon_dibosons	dimuon_top
+PType				data		bg		bg		bg		bg
+syst_Zjets_bkg1		lnN	0		0		1.1		1.1		1.1
+syst_Zjets_t1		lnN	0		1.1		0		0		0
+syst_norm_Zjets		lnU	0		2.0		0		0		0

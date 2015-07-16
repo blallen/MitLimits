@@ -1,0 +1,5 @@
+Process			signal_data	signal_ggH	signal_zjets	signal_wjets	signal_dibosons	signal_top	signal_zll	signal_qcd
+PType			data		sig		bg		bg		bg		bg		bg		bg
+syst_sig	lnN	0		1.1		0		0		0		0		0		0
+syst_norm_Zjets	lnU	0		0		2.0		0		0		0		0		0
+syst_norm_Wjets	lnU	0		0		0		2.0		0		0		0		0

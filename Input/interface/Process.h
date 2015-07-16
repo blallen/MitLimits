@@ -25,19 +25,21 @@ namespace mithep
     
     const TString           *Name()                           const { return &fName; }
     const TString           *Type()                           const { return &fType; }
+    //    const TString           *Region()                         const { return &fRegion; }
     UInt_t                   NSystematics()                   const { return fNSystematics; }
-    const UInt_t            *GetSystematic(UInt_t i)         const; //return 'i'th systematic
+    const TString            *GetSystematic(UInt_t i)         const; //return 'i'th systematic
 
     // UInt_t                  *AddSystematic(UInt_t i);
-    void                     AddSystematic(UInt_t i);
+    void                     AddSystematic(TString i);
 
     void                     Show()                           const; // show process properties
 
   private:
     TString                  fName;         // name of the process
     TString                  fType;         // whether process is sig or bg (or data)
+    // TString                  fRegion;       // which region process belongs to (signal or control)
     UInt_t                   fNSystematics; // number of systematics to apply to process
-    std::vector<UInt_t>      fSystematics;  // vector of systematics to apply to process
+    std::vector<TString>      fSystematics;  // vector of systematics to apply to process
     
     ClassDefNV(Process, 0) // Process describes all relevant aspects of a sample for plotting
   };
