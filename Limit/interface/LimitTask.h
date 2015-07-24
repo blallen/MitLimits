@@ -11,7 +11,6 @@
 #include <TFile.h>
 #include <TH1D.h>
 #include "MitLimits/Input/interface/TaskProcesses.h"
-#include "MitPlots/Style/interface/HistStyles.h"
 
 namespace mithep 
 {
