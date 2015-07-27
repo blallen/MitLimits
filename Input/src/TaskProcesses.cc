@@ -186,10 +186,12 @@ void TaskProcesses::ReadFile(const char* dir)
   // open file in a pipe (leaves options for filtering)
   // FILE *f = gSystem->OpenPipe((TString("cat ")+txtFile+TString("| grep -v ^#")).Data(),"r");
   ifstream f(txtFile.Data());
+  /*
   printf("           Cross Section [pb]  Dataset name                              ");
   printf("Legend               Skim?  \n");
   printf(" ------------------------------------------------------------------------");
   printf("----------------------------\n");
+  */
   
   string line;
   TString *lines[66];
@@ -215,11 +217,13 @@ void TaskProcesses::ReadFile(const char* dir)
     name = ((TObjString*)process->At(i0))->String();
     type = ((TObjString*)ptype->At(i0))->String();
     // region = ((TObjString*)pregion->At(i0))->String();
-    
+
+    /*
     // show what was read
     printf(" adding: %-10s %-6s\n",
 	   name.Data(),type.Data()); // ,region.Data());
-    
+    */
+
     if (type == data)                                          // found the data process
       tmpProcess = AddDataProcess(name.Data(),type.Data());
     else if (type == sig)                                      // define new signal process
@@ -248,52 +252,6 @@ void TaskProcesses::ReadFile(const char* dir)
   delete ptype;
   
   f.close();
-
-  /*
-  //Add systematics to TaskProcess
-  fscanf(f,"%s %s",SystNames[0],SystNames[1]);
-  // TString *tmpName = 0;
-  for (int i = 0; i < 2; i++)
-    {
-      // tmpName = AddSystematic(SystNames[i]);
-      AddSystematic(SystNames[i]);
-    }
-    
-  while (fscanf(f,"%s %s %u %u",name,type,&syst[0],&syst[1])
-	 != EOF) {
-    // show what was read
-    printf(" adding: %-10s %-6s\n",
-	   name,type);
-    
-    Process *tmpProcess = 0;
-    TString data = "data";
-    TString sig = "sig";
-    if (type == data)                                          // found 'the data process
-      {
-	tmpProcess = AddDataProcess(name,type);
-      }
-    else if (type == sig)                                      // define new signal process
-      {
-	tmpProcess = AddSigProcess(name,type);   
-      }                            
-    else                                                       // define new background process
-      tmpProcess = AddBgProcess(name,type);
-
-    //Add systematics to process
-    // UInt_t *tmpSyst = 0;
-    for (int i = 0; i < 2; i++)
-      {
-	// tmpSyst = tmpProcess->AddSystematic(syst[i]);
-	tmpProcess->AddSystematic(syst[i]);
-      }
-    
-    // Convert '~' -> ' '
-    // TString tmpLegend = TString(legend);
-    //tmpLegend.ReplaceAll(TString("~"),TString(" "));
-    //tmpProcess->SetLegend(tmpLegend.Data());
-  }
-  */
-  // gSystem->ClosePipe(f);
   
   return;
 }

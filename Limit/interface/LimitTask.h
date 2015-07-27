@@ -68,7 +68,9 @@ namespace mithep
 
     TH1D*                fDataHist;     // data histogram if it exists
     std::vector<TH1D*>   fSigHists;     // list of signal histograms
+    std::vector<TH1D*>   fSigSystHists; // list of histograms for signal systematics
     std::vector<TH1D*>   fBgHists;      // list of background histograms
+    std::vector<TH1D*>   fBgSystHists;  // list of histograms for bg systematics
     std::vector<TH1D*>   fHistsToPlot;  // list of all MC histograms
 
     double               fExpBg;        // total number of background events expected

@@ -87,8 +87,7 @@ for Xbin in Xbins:
         limitTask.WriteDataCard(temp)
     
         cardEnd   = os.path.join(cardStorage,cardName+'_'+LimitConfig)
-        print cardStart
-        print cardEnd
+        print 'Moving datacard from '+cardStart+' to '+cardEnd
         os.renames(cardStart,cardEnd)
         cardToAdd = cardEnd #config+'='+cardEnd
         CardsToAdd.append(cardToAdd)
@@ -96,33 +95,16 @@ for Xbin in Xbins:
             shapeName = baseName+'.root'+'_'+LimitConfig
             shapeStart = os.path.join(RootDir,shapeName)
             shapeEnd   = os.path.join(cardStorage,shapeName)
-            print shapeStart
-            print shapeEnd
+            print 'Moving datacard from '+shapeStart+ ' to '+shapeEnd
             os.renames(shapeStart,shapeEnd)
             ShapesToAdd.append(shapeEnd)
 
     CombinePath = os.path.join(os.environ['CMSSW_BASE'],'bin',os.environ['SCRAM_ARCH'],'combineCards.py')
-    combine = 'python '+CombinePath+' '+os.path.join(cardStorage,cardName)+'_* > '+os.path.join(cardStorage,cardName)
-    # print combine
-    # CombineCards = Popen(combine, shell=True)
     finalCardPath = os.path.join(cardStorage,cardName)
     finalCard = open(finalCardPath, 'w')
-    print CardsToAdd
+    print 'Combining the following cards: \n', CardsToAdd
     CombineCards = Popen(['python',CombinePath]+CardsToAdd, stdout=PIPE, stderr=PIPE,cwd=LimitTool)
     (cout, cerr) = CombineCards.communicate()
     finalCard.write(cout)
     print cerr
     finalCard.close()
-    '''
-    if Type == 'Binned':
-        CombineShapes = Popen(['hadd','-f',shapeStart]+ShapesToAdd,stdout=PIPE,stderr=PIPE)
-        (sout, serr) = CombineShapes.communicate()
-        print sout
-        print serr
-'''
-'''
-for Xbin in Xbins:
-CombineCards = Popen(['python',CombinePath,CardsToAdd],stdout=PIPE,stderr=PIPE)
-(stdout, stderr) = CombineCards.communicate()
-finalCard = 
-'''

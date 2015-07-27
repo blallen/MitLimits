@@ -21,9 +21,11 @@ void Process::Show() const
 {
   // Show information of this sample
   printf(" %-10s %-6s Number of Systematics: %-3u",fName.Data(),fType.Data(),fNSystematics);
-  for (UInt_t i0 = 0; i0 < fNSystematics; i0++) {
+  /*
+    for (UInt_t i0 = 0; i0 < fNSystematics; i0++) {
     printf(" %-6s", fSystematics[i0].Data());
-  }
+    }
+  */
   printf("\n");
 }
 

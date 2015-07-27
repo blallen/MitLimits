@@ -391,6 +391,7 @@ void LimitTask::WriteShapeBinned()
 	  if (j < GetCutBin(fDataHist))
 	    fDataHist->SetBinContent(j, 0);
 	}
+      fDataHist->SetName("data_obs");
       fDataHist->Write();
     }
 
@@ -403,6 +404,23 @@ void LimitTask::WriteShapeBinned()
 	}
        fHistsToPlot[i]->Write();
     }
+
+  for (UInt_t i0 = 0; i0 < fSigSystHists.size(); i0++) {
+    for (Int_t i1 = 0; i1 < fSigSystHists[i0]->GetNbinsX(); i1++) {
+      if (i1 < GetCutBin(fSigSystHists[i0]))
+	fSigSystHists[i0]->SetBinContent(i1, 0);
+    }
+    fSigSystHists[i0]->Write();
+  }
+
+  
+  for (UInt_t i0 = 0; i0 < fBgSystHists.size(); i0++) {
+    for (Int_t i1 = 0; i1 < fBgSystHists[i0]->GetNbinsX(); i1++) {
+      if (i1 < GetCutBin(fBgSystHists[i0]))
+	fBgSystHists[i0]->SetBinContent(i1, 0);
+    }
+    fBgSystHists[i0]->Write();
+  }
 
   delete fBinnedOut;
 
@@ -436,7 +454,8 @@ void LimitTask::ReadRootFile()
   for (UInt_t i=0; i<fTask->NDataProcesses(); i++)
     {
       const Process *p = fTask->GetDataProcess(i);
-      TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data());
+      // TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data()); // normally
+      TH1D *hTmp = (TH1D*)fRootFile->Get(p->Name()->Data()); // for using Nick's plots
       if (!hTmp) 
 	{
 	  printf(" WARNING -- No histogram found for Data. Using sum of background processes instead!\n");
@@ -457,6 +476,21 @@ void LimitTask::ReadRootFile()
 	}
       fSigHists.push_back(hTmp);
       fHistsToPlot.push_back(hTmp);
+
+      for (UInt_t i1 = 0; i1 < fTask->NSystematics(); i1++) {
+	TString shape = "shape";
+	if (*fTask->GetSystType(i1) != shape) continue;
+	if (!p->GetSystematic(i1)->Atoi()) continue;
+	TString UpName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Up");
+	// printf("UpName: %s\n", UpName.Data());
+	hTmp = (TH1D*)fRootFile->Get(UpName.Data());
+	fSigSystHists.push_back(hTmp);
+	
+	TString DownName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Down");
+	// printf("DownName: %s\n", DownName.Data());
+	hTmp = (TH1D*)fRootFile->Get(DownName.Data());
+	fSigSystHists.push_back(hTmp);
+      }
     }
 
   // Add background processes to appropriate vectors
@@ -484,5 +518,21 @@ void LimitTask::ReadRootFile()
 	    fDataHist->Add(hTmp);
 	  fExpBg += hTmp->Integral(GetCutBin(hTmp),hTmp->GetNbinsX()+1);
 	}
+      
+      for (UInt_t i1 = 0; i1 < fTask->NSystematics(); i1++) {
+	TString shape = "shape";
+	if (*fTask->GetSystType(i1) != shape) continue;
+	if (!p->GetSystematic(i1)->Atoi()) continue;
+	TString UpName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Up");
+	// printf("UpName: %s\n", UpName.Data());
+	hTmp = (TH1D*)fRootFile->Get(UpName.Data());
+	fBgSystHists.push_back(hTmp);
+
+	TString DownName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Down");
+	// printf("DownName: %s\n", DownName.Data());
+	hTmp = (TH1D*)fRootFile->Get(DownName.Data());
+	fBgSystHists.push_back(hTmp);
+      }
+      
     }
 }
