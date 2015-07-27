@@ -3,23 +3,24 @@
 ###======================================================================================
 from subprocess import Popen, PIPE
 import os
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 ###======================================================================================
 ### Set Up Input Options
 ###======================================================================================
 
-parser = OptionParser()
-parser.add_option('-R', help='Unique Name to Specify this Run', dest='RunName', action='store', metavar='<name>')
-parser.add_option('-T', help='type of datacard to make (Integral, Binned, or Unbinned)', dest='Type', action='store', metavar='<type>')
-parser.add_option('-x', help='define X axis', dest='Xaxis', action='store', metavar='<min> <max> <step>', nargs=3, type='int')
-parser.add_option('-X', help='set X variable name', dest='Xname', action='store', metavar='<name>')
-parser.add_option('-y', help='define Y axis', dest='Yaxis', action='store', metavar='<min> <max> <step>', nargs=3, type='int')
-parser.add_option('-Y', help='set Y variable name', dest='Yname', action='store', metavar='<name>')
+parser = ArgumentParser()
+parser.add_argument('-R', '--run', help='Unique Name to Specify this Run', dest='RunName', action='store', metavar='<name>')
+parser.add_argument('-T', '--type', help='type of datacard to make (Integral, Binned, or Unbinned)', dest='Type', action='store', metavar='<type>')
+parser.add_argument('-x', '--Xaxis', help='define X axis', dest='Xaxis', action='store', metavar='<min> <max> <step>', nargs=3, type=int)
+parser.add_argument('-X', '--Xname', help='set X variable name', dest='Xname', action='store', metavar='<name>')
+parser.add_argument('-y', '--Yaxis', help='define Y axis', dest='Yaxis', action='store', metavar='<min> <max> <step>', nargs=3, type=int)
+parser.add_argument('-Y', '--Yname', help='set Y variable name', dest='Yname', action='store', metavar='<name>')
+parser.add_argument('-C', '--config', help='specify config file name', dest='config', action='store', metavar='<name>', nargs='+', default=[] )
 
-(opts, args) = parser.parse_args()
+opts = parser.parse_args()
 
-mandatories = ['RunName','Type','Xaxis','Xname']
+mandatories = ['RunName','config','Type','Xaxis','Xname']
 for m in mandatories:
     if not opts.__dict__[m]:
         print "\nMandatory option is missing\n"
@@ -32,7 +33,7 @@ if (opts.Yname and not opts.Yaxis) or (opts.Yaxis and not opts.Yname):
     exit(-1)
     
 
-(opts, args) = parser.parse_args()
+opts = parser.parse_args()
 
 ###======================================================================================
 ### Initialize the variables!
@@ -46,7 +47,7 @@ os.environ['MIT_MCR_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimit
 os.environ['MIT_CFG_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/config')
 os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['HOME'],'cms/cmssw/034/CMSSW_7_1_5/src/HiggsAnalysis/CombinedLimit')
 
-os.environ['MIT_LMT_CFG']  = 'boostedv-limits-datadriven'
+os.environ['MIT_LMT_CFG']  = opts.config[0]
 
 os.environ['MIT_PROD_CFG'] = 'boostedv-v5'
 os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/'
@@ -85,22 +86,22 @@ if opts.Yaxis:
 ###======================================================================================
 MakePath = os.path.join(os.environ['MIT_LMT_PYT'], 'MakeDataCards.py')
 if opts.Yaxis:
-    tmpFileName = 'DataCard_'+RunName+'_'+Yname
+    tmpFileName = RunName+'_'+Yname
     for Ybin in Ybins:
         RootFileName = tmpFileName+"_"+str(Ybin)+"_"+Xname
         limitTask = Popen(['python',MakePath,
-                           '-R',RootFileName,'-T',Type,'-x',
-                           str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
+                           '-R',RootFileName,'-T',Type,'-C']+opts.config+[
+                           '-x',str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
                           stdout=PIPE,stderr=PIPE,
                           cwd=os.environ['MIT_ROOT_DIR'])
         (stdout, stderr) = limitTask.communicate()
         print stdout
         print stderr
 else:
-    RootFileName = 'DataCard_'+RunName+'_'+Xname
+    RootFileName = RunName+'_'+Xname
     limitTask = Popen(['python',MakePath,
-                       '-R',RootFileName,'-T',Type,'-x',
-                       str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
+                       '-R',RootFileName,'-T',Type,'-C']+opts.config+[
+                       '-x',str(Xmin),str(Xmax),str(Xstep),'-X',Xname],
                       stdout=PIPE,stderr=PIPE,
                       cwd=os.environ['MIT_ROOT_DIR'])
     (stdout, stderr) = limitTask.communicate()
@@ -111,34 +112,7 @@ else:
 ### Plot Limits
 ###======================================================================================
 cardStorage = os.path.join(os.environ['MIT_LMT_TOOL'],'data',opts.RunName)
-#print cardStorage
-
-for Xbin in Xbins:
-    if opts.Yaxis:
-        for Ybin in Ybins:
-            baseName = 'DataCard_'+RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type
-            cardName = baseName+'.txt'
-            cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
-            cardEnd   = os.path.join(cardStorage,cardName)
-            os.renames(cardStart,cardEnd)
-            if Type == 'Binned':
-                shapeName = baseName+'.root'
-                shapeStart = os.path.join(os.environ['MIT_ROOT_DIR'],shapeName)
-                shapeEnd   = os.path.join(cardStorage,shapeName)
-                os.renames(shapeStart,shapeEnd)
-    else:
-        baseName = 'DataCard_'+RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type
-        cardName = baseName+'.txt'
-        cardStart = os.path.join(os.environ['MIT_ROOT_DIR'],cardName)
-        cardEnd   = os.path.join(cardStorage,cardName)
-        os.renames(cardStart,cardEnd)
-        if Type == 'Binned':
-            shapeName = baseName+'.root'
-            shapeStart = os.path.join(os.environ['MIT_ROOT_DIR'],shapeName)
-            shapeEnd   = os.path.join(cardStorage,shapeName)
-            os.renames(shapeStart,shapeEnd)
-        
-            
+#print cardStorage            
 PlotPath = os.path.join(os.environ['MIT_LMT_PYT'], 'PlotLimits.py')
 if opts.Yaxis:
     plotLimits = Popen(['python',PlotPath,
@@ -154,4 +128,5 @@ else:
                        stderr = PIPE,
                        cwd=os.environ['MIT_ROOT_DIR'])
 print plotLimits.communicate()[1]
+
 exit()

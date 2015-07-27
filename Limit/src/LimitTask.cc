@@ -11,8 +11,6 @@
 #include <TLatex.h>
 #include <TTree.h>
 #include "MitCommon/Utils/interface/Utils.h"
-#include "MitPlots/Style/interface/MitStyle.h"
-#include "MitPlots/Plot/interface/PlotTask.h"
 #include "MitLimits/Limit/interface/LimitTask.h"
 
 ClassImp(mithep::LimitTask)
@@ -47,6 +45,7 @@ LimitTask::LimitTask(TaskProcesses *taskProcesses) :
     fTask = new TaskProcesses(prdCfg.Data(),hstDir.Data());
     fTask->SetNameTxt(lmtCfg.Data());
     fTask->ReadFile((lmtDir + TString("/config")).Data());
+    fTask->Show();
   }
 }
 
@@ -121,9 +120,11 @@ void LimitTask::WriteDataCard(int cType)
   if (cType == Binned) WriteShapeBinned();
   WriteDataIntegral(fCutVariable.Data());
   WriteMCIntegral(fCutVariable.Data());
-  if (cType == Integral) WriteSystIntegral();
+  WriteSystematics();
+  /*
+    if (cType == Integral) WriteSystIntegral();
   else if (cType == Binned) WriteSystBinned();
-     
+  */ 
 
   //if(canvas)
   //delete canvas;
@@ -222,6 +223,7 @@ void LimitTask::WriteMCIntegral(const char* draw)
 //--------------------------------------------------------------------------------------------------
 int LimitTask::GetCutBin(const TH1D* hTmp)
 {
+  /*
   double width = hTmp->GetXaxis()->GetBinWidth(1);
   double tmpBin = (fCutValue - hTmp->GetBinLowEdge(1))/width;
   UInt_t CutBin = 0;
@@ -233,12 +235,64 @@ int LimitTask::GetCutBin(const TH1D* hTmp)
       printf("Using Cut Value of %.2f instead! Consider rebinning histogram and running again!\n", hTmp->GetXaxis()->GetBinLowEdge(CutBin));
     }
   else CutBin = tmpBin + 1;
+  */
+
+  Int_t CutBin = -1;
+  for (Int_t i0 = 0; i0 < hTmp->GetNbinsX()+1; i0++) {
+    if (hTmp->GetBinLowEdge(i0) == fCutValue)
+      CutBin = i0;
+  }
+
+  if (CutBin == -1) {
+    printf("Cut Value %.2f does not match any bin boundary for histogram %s!\n Taking entire histogram! \n", fCutValue, hTmp->GetName());
+    CutBin = 0;
+  }
+
   return CutBin;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+TString LimitTask::GetSystValue(const char* type, const char* syst) {
+  // some comparison scheme that determines what to do for each type of systematic and returns the appropriate value to put in the data card
+  return TString(syst);
 }
 
 //--------------------------------------------------------------------------------------------------
 void LimitTask::WriteSystematics()
 {
+  fprintf(fCard, "\n#------------------------------------#");
+  fprintf(fCard, "\n# Block to specify systematic errors #");
+  fprintf(fCard, "\n#------------------------------------#");
+  //Add systematic errors to data card
+   
+  
+  TString SystName = "default";
+  TString SystType = "none";
+  
+  TString SystValue = "!";
+  
+  //  const TString *SystName = 0;
+  // const TString *SystType = 0;
+  // TString *SystValue = 0;
+
+  for (unsigned int i0 = 0; i0 < fTask->NSystematics(); i0++) {
+    SystName = *fTask->GetSystematic(i0);
+    SystType = *fTask->GetSystType(i0);
+    // printf("\n Working on syst: %20s %10s ", SystName.Data(), SystType.Data());
+    fprintf(fCard, "\n%s %6s ", SystName.Data(), SystType.Data());
+    for (unsigned int i1 = 0; i1 < fTask->NSigProcesses(); i1++) {
+      SystValue = GetSystValue(SystType.Data(), fTask->GetSigProcess(i1)->GetSystematic(i0)->Data());
+      // printf("%12s", SystValue.Data());
+      fprintf(fCard, "%12s", SystValue.Data());
+    }
+    for (unsigned int i1 = 0; i1 < fTask->NBgProcesses(); i1++) {
+      SystValue = GetSystValue(SystType.Data(), fTask->GetBgProcess(i1)->GetSystematic(i0)->Data());
+      // printf("%12s", SystValue.Data());
+      fprintf(fCard, "%12s", SystValue.Data());
+    }
+  }
+  
   return;
 }
 
@@ -255,11 +309,11 @@ void LimitTask::WriteSystBinned()
       fprintf(fCard, "\n%s %6s ", fTask->GetSystematic(j)->Data(), "shape");
       for (unsigned int i = 0; i < fTask->NSigProcesses(); i++)
 	{
-	  fprintf(fCard, "%12u", *fTask->GetSigProcess(i)->GetSystematic(j));
+	  fprintf(fCard, "%12.0f", fTask->GetSigProcess(i)->GetSystematic(j)->Atof());
 	}
       for (unsigned int i = 0; i < fTask->NBgProcesses(); i++)
 	{
-	  fprintf(fCard, "%12u", *fTask->GetBgProcess(i)->GetSystematic(j));
+	  fprintf(fCard, "%12.0f", fTask->GetBgProcess(i)->GetSystematic(j)->Atof());
 	}
     }
 }
@@ -279,7 +333,7 @@ void LimitTask::WriteSystIntegral()
       for (unsigned int i = 0; i < fTask->NSigProcesses(); i++)
 	{
 	  const Process *p = fTask->GetSigProcess(i);
-	  if (*p->GetSystematic(j))
+	  if (p->GetSystematic(j)->Atof())
 	    {
 	      ObsInt = fSigHists[i]->Integral(GetCutBin(fSigHists[i]),fSigHists[i]->GetNbinsX()+1);
 	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Up");
@@ -292,7 +346,7 @@ void LimitTask::WriteSystIntegral()
       for (unsigned int i = 0; i < fTask->NBgProcesses(); i++)
 	{
 	  const Process *p = fTask->GetBgProcess(i);
-	  if (*p->GetSystematic(j))
+	  if (p->GetSystematic(j)->Atof())
 	    {
 	      ObsInt = fBgHists[i]->Integral(GetCutBin(fBgHists[i]),fBgHists[i]->GetNbinsX()+1);
 	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Up");
@@ -326,7 +380,7 @@ double LimitTask::GetPercError(double ObsInt, const char* process, const char* s
 void LimitTask::WriteShapeBinned()
 {
   Int_t CutVal = fCutValue;
-  TString Outname = fRootFileName+TString("_")+(Long_t)CutVal+TString("_Binned.root");
+  TString Outname = fRootFileName+TString("_")+(Long_t)CutVal+TString("_Binned.root_")+TString(Utils::GetEnv("MIT_LMT_CFG"));
   fBinnedOut = new TFile(Outname.Data(), "RECREATE");
   fBinnedOut->cd();
 
@@ -337,6 +391,7 @@ void LimitTask::WriteShapeBinned()
 	  if (j < GetCutBin(fDataHist))
 	    fDataHist->SetBinContent(j, 0);
 	}
+      fDataHist->SetName("data_obs");
       fDataHist->Write();
     }
 
@@ -349,6 +404,23 @@ void LimitTask::WriteShapeBinned()
 	}
        fHistsToPlot[i]->Write();
     }
+
+  for (UInt_t i0 = 0; i0 < fSigSystHists.size(); i0++) {
+    for (Int_t i1 = 0; i1 < fSigSystHists[i0]->GetNbinsX(); i1++) {
+      if (i1 < GetCutBin(fSigSystHists[i0]))
+	fSigSystHists[i0]->SetBinContent(i1, 0);
+    }
+    fSigSystHists[i0]->Write();
+  }
+
+  
+  for (UInt_t i0 = 0; i0 < fBgSystHists.size(); i0++) {
+    for (Int_t i1 = 0; i1 < fBgSystHists[i0]->GetNbinsX(); i1++) {
+      if (i1 < GetCutBin(fBgSystHists[i0]))
+	fBgSystHists[i0]->SetBinContent(i1, 0);
+    }
+    fBgSystHists[i0]->Write();
+  }
 
   delete fBinnedOut;
 
@@ -382,7 +454,8 @@ void LimitTask::ReadRootFile()
   for (UInt_t i=0; i<fTask->NDataProcesses(); i++)
     {
       const Process *p = fTask->GetDataProcess(i);
-      TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data());
+      // TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data()); // normally
+      TH1D *hTmp = (TH1D*)fRootFile->Get(p->Name()->Data()); // for using Nick's plots
       if (!hTmp) 
 	{
 	  printf(" WARNING -- No histogram found for Data. Using sum of background processes instead!\n");
@@ -403,6 +476,21 @@ void LimitTask::ReadRootFile()
 	}
       fSigHists.push_back(hTmp);
       fHistsToPlot.push_back(hTmp);
+
+      for (UInt_t i1 = 0; i1 < fTask->NSystematics(); i1++) {
+	TString shape = "shape";
+	if (*fTask->GetSystType(i1) != shape) continue;
+	if (!p->GetSystematic(i1)->Atoi()) continue;
+	TString UpName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Up");
+	// printf("UpName: %s\n", UpName.Data());
+	hTmp = (TH1D*)fRootFile->Get(UpName.Data());
+	fSigSystHists.push_back(hTmp);
+	
+	TString DownName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Down");
+	// printf("DownName: %s\n", DownName.Data());
+	hTmp = (TH1D*)fRootFile->Get(DownName.Data());
+	fSigSystHists.push_back(hTmp);
+      }
     }
 
   // Add background processes to appropriate vectors
@@ -430,5 +518,21 @@ void LimitTask::ReadRootFile()
 	    fDataHist->Add(hTmp);
 	  fExpBg += hTmp->Integral(GetCutBin(hTmp),hTmp->GetNbinsX()+1);
 	}
+      
+      for (UInt_t i1 = 0; i1 < fTask->NSystematics(); i1++) {
+	TString shape = "shape";
+	if (*fTask->GetSystType(i1) != shape) continue;
+	if (!p->GetSystematic(i1)->Atoi()) continue;
+	TString UpName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Up");
+	// printf("UpName: %s\n", UpName.Data());
+	hTmp = (TH1D*)fRootFile->Get(UpName.Data());
+	fBgSystHists.push_back(hTmp);
+
+	TString DownName = *p->Name()+TString("_")+*fTask->GetSystematic(i1)+TString("Down");
+	// printf("DownName: %s\n", DownName.Data());
+	hTmp = (TH1D*)fRootFile->Get(DownName.Data());
+	fBgSystHists.push_back(hTmp);
+      }
+      
     }
 }

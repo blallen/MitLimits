@@ -20,16 +20,22 @@ Process::Process(const char *name, const char* type) :
 void Process::Show() const
 {
   // Show information of this sample
-  printf(" %-10s %-6s Number of Systematics: %-3u\n",fName.Data(),fType.Data(),fNSystematics);
+  printf(" %-10s %-6s Number of Systematics: %-3u",fName.Data(),fType.Data(),fNSystematics);
+  /*
+    for (UInt_t i0 = 0; i0 < fNSystematics; i0++) {
+    printf(" %-6s", fSystematics[i0].Data());
+    }
+  */
+  printf("\n");
 }
 
 //--------------------------------------------------------------------------------------------------
-// UInt_t *Process::AddSystematic(UInt_t syst)
-void Process::AddSystematic(UInt_t syst)
+// UInt_t *Process::AddSystematic(TString syst)
+void Process::AddSystematic(TString syst)
 {
   // Adding another systematic (vector takes care of memory management)
 
-  UInt_t *Syst = new UInt_t(syst);
+  TString *Syst = new TString(syst);
   fSystematics.push_back(*Syst);
   fNSystematics++;
   delete Syst;
@@ -40,7 +46,7 @@ void Process::AddSystematic(UInt_t syst)
 
 
 //--------------------------------------------------------------------------------------------------
-const UInt_t *Process::GetSystematic(UInt_t iSystematic) const
+const TString *Process::GetSystematic(UInt_t iSystematic) const
 {
   // Get sample corresponding to given sample number. Return NULL pointer if index out of range.
 
