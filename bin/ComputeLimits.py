@@ -45,7 +45,7 @@ os.environ['MIT_ROOT_DIR'] = os.path.join(os.environ['HOME'],"cms/root")
 os.environ['MIT_LMT_PYT']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/bin')
 os.environ['MIT_MCR_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros')
 os.environ['MIT_CFG_DIR']  = os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/config')
-os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['HOME'],'cms/cmssw/034/CMSSW_7_1_5/src/HiggsAnalysis/CombinedLimit')
+os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['CMSSW_BASE'],'src/HiggsAnalysis/CombinedLimit')
 
 os.environ['MIT_LMT_CFG']  = opts.config[0]
 

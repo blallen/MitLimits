@@ -4,22 +4,23 @@
 from subprocess import Popen, PIPE
 import os
 from pprint import pprint
-from optparse import OptionParser
+from argparse import ArgumentParser
 from ROOT import *
 
 ###======================================================================================
 ### Set Up Input Options
 ###======================================================================================
 
-parser = OptionParser()
-parser.add_option('-R', help='Unique Name to Specify this Run', dest='RunName', action='store', metavar='<name>')
-parser.add_option('-X', help='set X variable name', dest='Xname', action='store', metavar='<name>')
-parser.add_option('-y', help='define Y axis', dest='Yaxis', action='store', metavar='<min> <max> <step>', nargs=3, type='int')
-parser.add_option('-Y', help='set Y variable name', dest='Yname', action='store', metavar='<name>')
+parser = ArgumentParser()
+parser.add_argument('-R', '--run', help='Unique Name to Specify this Run', dest='RunName', action='store', metavar='<name>')
+parser.add_argument('-X', '--Xname', help='set X variable name', dest='Xname', action='store', metavar='<name>')
+parser.add_argument('-y', '--Yaxis', help='define Y axis', dest='Yaxis', action='store', metavar='<min> <max> <step>', nargs=3, type=int)
+parser.add_argument('-Y', '--Yname', help='set Y variable name', dest='Yname', action='store', metavar='<name>')
+parser.add_argument('-C', '--config', help='specify config file name', dest='config', action='store', metavar='<name>', nargs='+', default=[] )
 
-(opts, args) = parser.parse_args()
+opts = parser.parse_args()
 
-mandatories = ['RunName','Xname','Yaxis','Yname']
+mandatories = ['RunName','config' 'Xname','Yaxis','Yname']
 #mandatories = []
 for m in mandatories:
     if not opts.__dict__[m]:
@@ -27,7 +28,7 @@ for m in mandatories:
         parser.print_help()
         exit(-1)    
 
-(opts, args) = parser.parse_args()
+opts = parser.parse_args()
 
 ###======================================================================================
 ### Initialize the variables!
@@ -35,7 +36,7 @@ for m in mandatories:
 
 RootDir     = os.getenv('MIT_ROOT_DIR', os.path.join(os.environ['HOME'],"cms/root"))
 ConfigDir   = os.getenv('MIT_CFG_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/config'))
-LimitConfig = os.getenv('MIT_LMT_CFG',  'boostedv-limits-datadriven')
+LimitConfig = os.getenv('MIT_LMT_CFG',  opts.config[0])
 
 RunName = opts.RunName
 Xname = opts.Xname
@@ -50,16 +51,17 @@ Ybins = range(Ymax, Ymin-Ystep, -Ystep)
 ###======================================================================================
 
 samples = []
-configFileName = os.path.join(ConfigDir,LimitConfig+'.txt')
-configFile = open(configFileName, 'r')
-lines = [line for line in configFile]
-tmp = []
-for line in lines:
-    tmp = line.split()
-    if tmp:
-        if len(tmp) > 2:
-            if not tmp[0].startswith("#"):
-                samples.append(tmp[0])
+for config in opts.config:
+    configFileName = os.path.join(ConfigDir,config+'.txt')
+    configFile = open(configFileName, 'r')
+    lines = [line for line in configFile]
+    tmp = []
+    for line in lines:
+        tmp = line.split()
+        if tmp:
+            if len(tmp) > 2:
+                if not tmp[0].startswith("#"):
+                    samples.append(tmp[0])
 # pprint(samples)
 
 ###======================================================================================

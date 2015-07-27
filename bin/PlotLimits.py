@@ -95,7 +95,7 @@ if (opts.Yname and not opts.Yaxis) or (opts.Yaxis and not opts.Yname):
 ### Initialize the variables!
 ###======================================================================================
 
-LimitToolDir = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['HOME'],'cms/cmssw/034/CMSSW_7_1_5/src/HiggsAnalysis/CombinedLimit'))
+LimitToolDir = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['CMSSW_BASE'],'src/HiggsAnalysis/CombinedLimit'))
 MacroDir     = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros'))
 RootDir      = os.getenv('MIT_ROOT_DIR', os.path.join(os.environ['HOME'],"cms/root"))
 

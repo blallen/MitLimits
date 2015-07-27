@@ -38,7 +38,7 @@ ProdConfig  = os.getenv('MIT_PROD_CFG', 'boostedv-v5')
 AnaHist     = os.getenv('MIT_ANA_HIST', '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/')
 LimitConfig = os.getenv('MIT_LMT_CFG',  opts.config[0])
 RootDir     = os.getenv('MIT_ROOT_DIR', os.path.join(os.environ['HOME'],"cms/root"))
-LimitTool   = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['HOME'],'cms/cmssw/034/CMSSW_7_1_5/src/HiggsAnalysis/CombinedLimit'))
+LimitTool   = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['CMSSW_BASE'],'src/HiggsAnalysis/CombinedLimit'))
 
 
 cardStorage = os.path.join(LimitTool,'data',opts.RootFileName)
