@@ -236,7 +236,7 @@ int LimitTask::GetCutBin(const TH1D* hTmp)
   */
 
   Int_t CutBin = -1;
-  for (Int_t i0 = 0; i0 < hTmp->GetNbinsX()+1; i0++) {
+  for (Int_t i0 = 1; i0 < hTmp->GetNbinsX(); i0++) {
     if (TMath::Abs( (hTmp->GetBinLowEdge(i0) - fCutValue)/fCutValue ) < 0.01)
       // no more floating point comparisons
       CutBin = i0;
