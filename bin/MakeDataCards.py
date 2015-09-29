@@ -46,7 +46,7 @@ Xname = opts.Xname
 Xmin = opts.Xaxis[0]
 Xmax = opts.Xaxis[1]
 Xstep = opts.Xaxis[2]
-Xbins = range(Xmin, Xmax+Xstep, Xstep)
+Xbins = range(Xmin, Xmax+1, Xstep)
 
 
 ###======================================================================================

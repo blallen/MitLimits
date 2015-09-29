@@ -44,7 +44,7 @@ Yname = opts.Yname
 Ymin = opts.Yaxis[0]
 Ymax = opts.Yaxis[1]
 Ystep = opts.Yaxis[2]
-Ybins = range(Ymax, Ymin-Ystep, -Ystep)
+Ybins = range(Ymax, Ymin-1, -Ystep)
 
 ###======================================================================================
 ### Find Sample Names

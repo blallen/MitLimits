@@ -55,14 +55,15 @@ Xname = opts.Xname
 Xmin = opts.Xaxis[0]
 Xmax = opts.Xaxis[1]
 Xstep = opts.Xaxis[2]
-Xbins = range(Xmin, Xmax+Xstep, Xstep)
+Xbins = range(Xmin, Xmax+1, Xstep) # old method would overshoot
+print "Xbins: ",Xbins
 if opts.Yname:
     Yname = opts.Yname
 if opts.Yaxis:
     Ymin = opts.Yaxis[0]
     Ymax = opts.Yaxis[1]
     Ystep = opts.Yaxis[2]
-    Ybins = range(Ymax, Ymin-Ystep, -Ystep)
+    Ybins = range(Ymax, Ymin-1, -Ystep)
 
 ###======================================================================================
 ### Convert 2D Plots to 1D Plots
