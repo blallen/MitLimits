@@ -30,7 +30,6 @@ void TaskProcesses::Show() const
   // Show present list of defined samples
 
   printf("\n ==== Analysis task overview -- %s ====\n\n",fName.Data());
-  printf(" Histogram directory: %s\n\n",fDir.Data());
   printf(" Dataset name                   Skim   Legend               Histogram file");
   printf("                                                  Cross Section [pb]   Scale\n");
   printf(" ------------------------------------------------------------------------");

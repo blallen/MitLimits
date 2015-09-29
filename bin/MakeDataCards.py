@@ -34,8 +34,6 @@ opts = parser.parse_args()
 
 LimitDir    = os.getenv('MIT_LMT_DIR', os.path.join(os.environ['CMSSW_BASE'], 'src/MitLimits'))
 MacroDir    = os.getenv('MIT_MCR_DIR',  os.path.join(os.environ['CMSSW_BASE'],'src/MitLimits/macros'))
-ProdConfig  = os.getenv('MIT_PROD_CFG', 'boostedv-v5')
-AnaHist     = os.getenv('MIT_ANA_HIST', '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/')
 LimitConfig = os.getenv('MIT_LMT_CFG',  opts.config[0])
 RootDir     = os.getenv('MIT_ROOT_DIR', os.path.join(os.environ['HOME'],"cms/root"))
 LimitTool   = os.getenv('MIT_LMT_TOOL', os.path.join(os.environ['CMSSW_BASE'],'src/HiggsAnalysis/CombinedLimit'))
@@ -59,8 +57,6 @@ gSystem.Load('libMitLimitsInput.so')
 gSystem.Load('libMitLimitsLimit.so')
 
 gSystem.Setenv("MIT_LMT_DIR",LimitDir)
-gSystem.Setenv("MIT_PROD_CFG",ProdConfig) 
-gSystem.Setenv("MIT_ANA_HIST",AnaHist)
 gSystem.Setenv("MIT_LMT_CFG",LimitConfig) 
 
 if Type == 'Integral': temp = 0
@@ -88,7 +84,8 @@ for Xbin in Xbins:
     
         cardEnd   = os.path.join(cardStorage,cardName+'_'+LimitConfig)
         print 'Moving datacard from '+cardStart+' to '+cardEnd
-        os.renames(cardStart,cardEnd)
+        os.system('mv %s %s'%(cardStart,cardEnd))
+#        os.renames(cardStart,cardEnd)
         cardToAdd = cardEnd #config+'='+cardEnd
         CardsToAdd.append(cardToAdd)
         if Type == 'Binned':

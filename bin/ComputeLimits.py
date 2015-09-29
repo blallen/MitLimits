@@ -49,9 +49,6 @@ os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['CMSSW_BASE'],'src/HiggsAna
 
 os.environ['MIT_LMT_CFG']  = opts.config[0]
 
-os.environ['MIT_PROD_CFG'] = 'boostedv-v5'
-os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/'
-
 RunName = opts.RunName
 Type = opts.Type
 Xname = opts.Xname
