@@ -74,7 +74,7 @@ if opts.Yaxis:
     ConvertPath = os.path.join(os.environ['MIT_LMT_PYT'], 'Convert2Dto1D.py')
     convertHistos = Popen(['python',ConvertPath,
                            '-R',RunName,'-X',Xname,
-                           '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname],
+                           '-y',str(Ymin),str(Ymax),str(Ystep),'-Y',Yname,'-C']+opts.config,
                           stdout=PIPE,stderr=PIPE,
                           cwd=os.environ['MIT_ROOT_DIR'])
     (stdout, stderr) = convertHistos.communicate()

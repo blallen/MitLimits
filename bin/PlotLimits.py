@@ -19,13 +19,20 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
                       stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)    
 
     find = Popen(['grep','Expected 50.0%'],stdin=HiggsTool.stdout,stdout=PIPE,stderr=PIPE)
-    
-    lines = [line for line in find.stdout]
+    (fout, ferr) = find.communicate()
+    print fout
+
+    lines = [line for line in fout]
+    print lines
 
     for line in lines:
+        print line
         tmp = line.split()
+        print tmp
         if tmp:
+            print tmp[4]
             return tmp[4]
+
         
 ###======================================================================================
 ### Function to Write Limits to a 2D Plotting Macro

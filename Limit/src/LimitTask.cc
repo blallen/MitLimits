@@ -454,8 +454,8 @@ void LimitTask::ReadRootFile()
   for (UInt_t i=0; i<fTask->NDataProcesses(); i++)
     {
       const Process *p = fTask->GetDataProcess(i);
-      // TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data()); // normally
-      TH1D *hTmp = (TH1D*)fRootFile->Get(p->Name()->Data()); // for using Nick's plots
+      TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data()); // normally
+      // TH1D *hTmp = (TH1D*)fRootFile->Get(p->Name()->Data()); // for using Nick's plots
       if (!hTmp) 
 	{
 	  printf(" WARNING -- No histogram found for Data. Using sum of background processes instead!\n");
@@ -494,7 +494,8 @@ void LimitTask::ReadRootFile()
     }
 
   // Add background processes to appropriate vectors
-  bool SimData = !fDataHist;
+  // bool SimData = !fDataHist;
+  bool SimData = false;
   for (UInt_t i=0; i<fTask->NBgProcesses(); i++) 
     {
       const Process *p = fTask->GetBgProcess(i);
