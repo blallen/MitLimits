@@ -5,6 +5,7 @@
 from subprocess import Popen, PIPE
 import os
 import re
+from array import array
 from pprint import pprint
 from optparse import OptionParser
 from ROOT import *
@@ -17,23 +18,53 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
     TextPath = DataCardPath+'.txt'
     HiggsTool = Popen(['combine','-M','Asymptotic',TextPath],
                       stdout=PIPE,stderr=PIPE,cwd=LimitToolDir)    
+    """ For debugging, will cause grep step to crash
+    (hout, herr) = HiggsTool.communicate()
+    print hout, '\n'
+    print herr, '\n'
+    """
 
     find = Popen(['grep','Expected 50.0%'],stdin=HiggsTool.stdout,stdout=PIPE,stderr=PIPE)
+    """ for debugging, will cause next step to crash
     (fout, ferr) = find.communicate()
-    print fout
+    print fout, '\n'
+    print ferr, '\n'
+    """
 
-    lines = [line for line in fout]
-    print lines
+    lines = [line for line in find.stdout]
+    # print lines
 
     for line in lines:
-        print line
+        # print line
         tmp = line.split()
-        print tmp
+        # print tmp
         if tmp:
-            print tmp[4]
+            # print tmp[4]
             return tmp[4]
 
         
+
+###======================================================================================
+### Color Gradient For 2D Plots
+###======================================================================================
+def ColorGrad():
+    ncontours = 999
+    stops = [0.0,0.5,1.0]
+    red   = [1.0,1.0,0.0]
+    green = [0.0,1.0,0.0]
+    blue  = [0.0,1.0,1.0]
+    
+    s = array('d', stops)
+    r = array('d', red)
+    g = array('d', green)
+    b = array('d', blue)
+
+    npoints = len(s)
+    TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
+    gStyle.SetNumberContours(ncontours)
+    gStyle.SetPaintTextFormat("3.2f")
+
+
 ###======================================================================================
 ### Function to Write Limits to a 2D Plotting Macro
 ###======================================================================================
@@ -41,6 +72,7 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
 def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
     canvas = TCanvas()
     hExpectedLimits = TH2D("ExpLimit", "Expected Model Independent Limits",len(Xbins),float(Xbins[0]),float(Xbins[-1]+Xstep),len(Ybins),float(Ybins[-1]),float(Ybins[0]+Ystep))
+    hExpectedLimits.SetStats(False)
     hExpectedLimits.SetMarkerSize(2.5)
     hExpectedLimits.GetZaxis().SetTitle("Expected Limit")
     hExpectedLimits.GetYaxis().SetTitle(Yname)
@@ -52,7 +84,8 @@ def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
 
     hExpectedLimits.Draw("colz")
     hExpectedLimits.Draw("sameTEXT")
-    canvas.SaveAs(plotName)
+    canvas.SaveAs(plotName+'.pdf')
+    canvas.SaveAs(plotName+'.png')
 
 ###======================================================================================
 ### Function to Write Limits to a 1D Plotting Macro
@@ -61,6 +94,7 @@ def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
 def MakePlot1D(limits,plotName,Xstep,Xbins,Xname):
     canvas = TCanvas()
     hExpectedLimits = TH1D("ExpLimit", "Expected Model Independent Limits",len(Xbins),float(Xbins[0]),float(Xbins[-1]+Xstep))
+    hExpectedLimits.SetStats(False)
     hExpectedLimits.SetMarkerSize(2.5)
     hExpectedLimits.GetYaxis().SetTitle("Expected Limit")
     hExpectedLimits.GetXaxis().SetTitle(Xname)
@@ -70,7 +104,8 @@ def MakePlot1D(limits,plotName,Xstep,Xbins,Xname):
             hExpectedLimits.Fill(float(Xbin),float(limit))
             
     hExpectedLimits.Draw("hist")
-    canvas.SaveAs(plotName)
+    canvas.SaveAs(plotName+'.pdf')
+    canvas.SaveAs(plotName+'.png')
 
 ###======================================================================================
 ### Set Up Input Options
@@ -121,7 +156,7 @@ if opts.Yaxis:
     Ymax = opts.Yaxis[1]
     Ystep = opts.Yaxis[2]
     Ybins = range(Ymax, Ymin-Ystep, -Ystep)
-
+    ColorGrad()
 
 ###======================================================================================
 ### Run Higgs Combination Tool to Find Limits
@@ -135,13 +170,15 @@ for Xbin in Xbins:
     rowNumber = (Xbin - Xmin) / Xstep
     if opts.Yaxis:
         for Ybin in Ybins:
+            DataCardStorage = RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname
             DataCardName = RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'_'+str(Xbin)+'_'+Type
-            DataCardPath = os.path.join('data',RunName,DataCardName)
+            DataCardPath = os.path.join('data',DataCardStorage,DataCardName)
             print 'Using DataCard: '+DataCardPath
             limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
     else:
+        DataCardStorage = RunName+'_'+Xname
         DataCardName = RunName+'_'+Xname+'_'+str(Xbin)+'_'+Type
-        DataCardPath = os.path.join('data',RunName+'_'+Xname,DataCardName)
+        DataCardPath = os.path.join('data',DataCardStorage,DataCardName)
         print 'Using DataCard: '+DataCardPath
         limits[rowNumber].append(RunHiggsTool(DataCardPath,LimitToolDir))
 
@@ -153,9 +190,9 @@ pprint(limits)
 ### Plot Limits
 ###======================================================================================
 if opts.Yaxis:
-    plotName = 'ExpLimits_'+RunName+'_'+Yname+'_'+Xname+'_'+Type+'.png'
+    plotName = os.path.join(RootDir,'ExpLimits_'+RunName+'_'+Yname+'_'+Xname+'_'+Type)
     MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname)
 
 else:
-    plotName = 'ExpLimits_'+RunName+'_'+Xname+'_'+Type+'.png'
+    plotName = os.path.join(RootDir,'ExpLimits_'+RunName+'_'+Xname+'_'+Type)
     MakePlot1D(limits,plotName,Xstep,Xbins,Xname)
