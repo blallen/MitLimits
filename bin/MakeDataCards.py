@@ -84,8 +84,8 @@ for Xbin in Xbins:
     
         cardEnd   = os.path.join(cardStorage,cardName+'_'+LimitConfig)
         print 'Moving datacard from '+cardStart+' to '+cardEnd
-        os.system('mv %s %s'%(cardStart,cardEnd))
-#        os.renames(cardStart,cardEnd)
+        # os.system('mv %s %s'%(cardStart,cardEnd))
+        os.renames(cardStart,cardEnd)
         cardToAdd = cardEnd #config+'='+cardEnd
         CardsToAdd.append(cardToAdd)
         if Type == 'Binned':

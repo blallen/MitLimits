@@ -5,11 +5,11 @@
 from subprocess import Popen, PIPE
 import os
 import re
-from array import array
+import array
 from pprint import pprint
 from optparse import OptionParser
 from ROOT import TH1D,TH2D,TCanvas,TGraph, TColor, gStyle
-from numpy import array
+import numpy
 
 ###======================================================================================
 ### Function to Run Higgs Tool and Get Expected Limit for a DataCard
@@ -50,20 +50,20 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
 ###======================================================================================
 def ColorGrad():
     ncontours = 999
-    stops = [0.0,0.5,1.0]
-    red   = [1.0,1.0,0.0]
-    green = [0.0,1.0,0.0]
-    blue  = [0.0,1.0,1.0]
+    stops = (0.0,0.5,1.0)
+    red   = (1.0,1.0,0.0)
+    green = (0.0,1.0,0.0)
+    blue  = (0.0,1.0,1.0)
     
-    s = array('d', stops)
-    r = array('d', red)
-    g = array('d', green)
-    b = array('d', blue)
+    s = array.array('d', stops)
+    r = array.array('d', red)
+    g = array.array('d', green)
+    b = array.array('d', blue)
 
     npoints = len(s)
     TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
     gStyle.SetNumberContours(ncontours)
-    gStyle.SetPaintTextFormat("1.2f")
+    gStyle.SetPaintTextFormat("3.2f")
 
 
 ###======================================================================================
@@ -94,7 +94,7 @@ def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
 
 def MakePlot1D(limits,plotName,Xstep,Xbins,Xname):
     canvas = TCanvas()
-    hExpectedLimits = TGraph(len(Xbins),array([float(x) for x in Xbins]), array([float(l[0]) for l in limits]))
+    hExpectedLimits = TGraph(len(Xbins),numpy.array([float(x) for x in Xbins]), numpy.array([float(l[0]) for l in limits]))
     hExpectedLimits.GetYaxis().SetTitle("Expected Limit")
     hExpectedLimits.GetXaxis().SetTitle(Xname)
     

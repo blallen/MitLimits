@@ -1,0 +1,9 @@
+Proccess		add5-2	zg	wg	efake	hfake	g	minor
+PType			sig	bg	bg	bg	bg	bg	bg
+lumi		lnN	1.046	1.046	1.046	0	0	1.046	1.046
+qcd_scale	lnN	0	1.1	1.1	0	0	1.1	1.1
+pho_es		lnN	1.02	1.02	1.02	0	0	1.02	1.02
+jet_es		lnN	1.05	1.05	1.05	0	0	1.05	1.05
+photon_sf	lnN	1.01	1.01	1.01	0	0	1.01	1.01
+hfake_exp	lnN	0	0	0	0	1.20	0	0	
+efake_exp	lnN	0	0	0	1.30	0	0	0
