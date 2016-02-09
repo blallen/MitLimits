@@ -62,7 +62,7 @@ def ColorGrad():
     npoints = len(s)
     TColor.CreateGradientColorTable(npoints, s, r, g, b, ncontours)
     gStyle.SetNumberContours(ncontours)
-    gStyle.SetPaintTextFormat("3.2f")
+    gStyle.SetPaintTextFormat("1.2f")
 
 
 ###======================================================================================
@@ -84,6 +84,7 @@ def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
 
     hExpectedLimits.Draw("colz")
     hExpectedLimits.Draw("sameTEXT")
+    # canvas.SetLogz(True)
     canvas.SaveAs(plotName+'.pdf')
     canvas.SaveAs(plotName+'.png')
 

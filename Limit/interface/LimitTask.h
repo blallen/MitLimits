@@ -46,7 +46,7 @@ namespace mithep
 
     // Functions for counting experiment cards
     void                 WriteDataIntegral   (const char* draw);
-    void                 WriteMCIntegral     (const char* draw);
+    void                 WriteMCIntegral     (const char* draw, int type);
     void                 WriteSystIntegral   ();
     int                  GetCutBin           (const TH1D* hTmp);
     double               GetPercError        (double ObsInt, const char* process, 

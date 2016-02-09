@@ -119,12 +119,8 @@ void LimitTask::WriteDataCard(int cType)
   WriteHeader();
   if (cType == Binned) WriteShapeBinned();
   WriteDataIntegral(fCutVariable.Data());
-  WriteMCIntegral(fCutVariable.Data());
+  WriteMCIntegral(fCutVariable.Data(),cType);
   WriteSystematics();
-  /*
-    if (cType == Integral) WriteSystIntegral();
-  else if (cType == Binned) WriteSystBinned();
-  */ 
 
   //if(canvas)
   //delete canvas;
@@ -151,7 +147,7 @@ void LimitTask::WriteHeader()
 void LimitTask::WriteDataIntegral(const char* draw)
 {
   double NObs;
-  if (fDataHist) 
+  if (fDataHist && fTask->NDataProcesses()) 
     {
       NObs = fDataHist->Integral(GetCutBin(fDataHist),fDataHist->GetNbinsX());
     }
@@ -165,7 +161,7 @@ void LimitTask::WriteDataIntegral(const char* draw)
 }
 
 //--------------------------------------------------------------------------------------------------
-void LimitTask::WriteMCIntegral(const char* draw)
+void LimitTask::WriteMCIntegral(const char* draw, int type)
 {
   //maybe have dynamic column widths?
   /*
@@ -216,6 +212,8 @@ void LimitTask::WriteMCIntegral(const char* draw)
   for (unsigned int i = 0; i < fHistsToPlot.size(); i++)
     {
       rate = fHistsToPlot[i]->Integral(GetCutBin(fHistsToPlot[i]),fHistsToPlot[i]->GetNbinsX()+1);
+      if (type == Binned && rate)
+	rate = -1;
       fprintf(fCard, "%20.2f", rate);
     }
 }
@@ -299,7 +297,7 @@ void LimitTask::WriteSystematics()
 //--------------------------------------------------------------------------------------------------
 void LimitTask::WriteSystBinned()
 {
-   fprintf(fCard, "\n#------------------------------------#");
+  fprintf(fCard, "\n#------------------------------------#");
   fprintf(fCard, "\n# Block to specify systematic errors #");
   fprintf(fCard, "\n#------------------------------------#");
   //Add systematic errors to data card
@@ -384,6 +382,7 @@ void LimitTask::WriteShapeBinned()
   fBinnedOut = new TFile(Outname.Data(), "RECREATE");
   fBinnedOut->cd();
 
+  printf("\nDoes data hist exist? %d", (fDataHist != 0));
   if (fDataHist)
     {
       for (int j = 0; j < fDataHist->GetNbinsX(); j++)
@@ -454,8 +453,8 @@ void LimitTask::ReadRootFile()
   for (UInt_t i=0; i<fTask->NDataProcesses(); i++)
     {
       const Process *p = fTask->GetDataProcess(i);
-      TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data()); // normally
-      // TH1D *hTmp = (TH1D*)fRootFile->Get(p->Name()->Data()); // for using Nick's plots
+      // TH1D *hTmp = (TH1D*)fRootFile->Get((p->Name()->Data()+TString("_obs")).Data()); // normally
+      TH1D *hTmp = (TH1D*)fRootFile->Get(p->Name()->Data()); // for using Nick's plots
       if (!hTmp) 
 	{
 	  printf(" WARNING -- No histogram found for Data. Using sum of background processes instead!\n");
@@ -494,8 +493,7 @@ void LimitTask::ReadRootFile()
     }
 
   // Add background processes to appropriate vectors
-  // bool SimData = !fDataHist;
-  bool SimData = false;
+  bool SimData = !fDataHist;
   for (UInt_t i=0; i<fTask->NBgProcesses(); i++) 
     {
       const Process *p = fTask->GetBgProcess(i);
