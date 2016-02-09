@@ -7,7 +7,8 @@ import os
 import re
 from pprint import pprint
 from optparse import OptionParser
-from ROOT import *
+from ROOT import TH1D,TH2D,TCanvas,TGraph 
+from numpy import array
 
 ###======================================================================================
 ### Function to Run Higgs Tool and Get Expected Limit for a DataCard
@@ -41,7 +42,7 @@ def RunHiggsTool(DataCardPath,LimitToolDir):
 def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
     canvas = TCanvas()
     hExpectedLimits = TH2D("ExpLimit", "Expected Model Independent Limits",len(Xbins),float(Xbins[0]),float(Xbins[-1]+Xstep),len(Ybins),float(Ybins[-1]),float(Ybins[0]+Ystep))
-    hExpectedLimits.SetMarkerSize(2.5)
+    # hExpectedLimits.SetMarkerSize(2.5)
     hExpectedLimits.GetZaxis().SetTitle("Expected Limit")
     hExpectedLimits.GetYaxis().SetTitle(Yname)
     hExpectedLimits.GetXaxis().SetTitle(Xname)
@@ -60,16 +61,12 @@ def MakePlot2D(limits,plotName,Xstep,Xbins,Xname,Ystep,Ybins,Yname):
 
 def MakePlot1D(limits,plotName,Xstep,Xbins,Xname):
     canvas = TCanvas()
-    hExpectedLimits = TH1D("ExpLimit", "Expected Model Independent Limits",len(Xbins),float(Xbins[0]),float(Xbins[-1]+Xstep))
-    hExpectedLimits.SetMarkerSize(2.5)
+    hExpectedLimits = TGraph(len(Xbins),array([float(x) for x in Xbins]), array([float(l[0]) for l in limits]))
+    # hExpectedLimits.SetMarkerSize(2.5)
     hExpectedLimits.GetYaxis().SetTitle("Expected Limit")
     hExpectedLimits.GetXaxis().SetTitle(Xname)
     
-    for row, Xbin in zip(limits,Xbins):
-        for limit in row:
-            hExpectedLimits.Fill(float(Xbin),float(limit))
-            
-    hExpectedLimits.Draw("hist")
+    hExpectedLimits.Draw("AC*")
     canvas.SaveAs(plotName)
 
 ###======================================================================================
@@ -113,14 +110,14 @@ Xname = opts.Xname
 Xmin = opts.Xaxis[0]
 Xmax = opts.Xaxis[1]
 Xstep = opts.Xaxis[2]
-Xbins = range(Xmin, Xmax+Xstep, Xstep)
+Xbins = range(Xmin, Xmax+1, Xstep)
 if opts.Yname:
     Yname = opts.Yname
 if opts.Yaxis:
     Ymin = opts.Yaxis[0]
     Ymax = opts.Yaxis[1]
     Ystep = opts.Yaxis[2]
-    Ybins = range(Ymax, Ymin-Ystep, -Ystep)
+    Ybins = range(Ymax, Ymin-1, -Ystep)
 
 
 ###======================================================================================

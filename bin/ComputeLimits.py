@@ -49,23 +49,21 @@ os.environ['MIT_LMT_TOOL'] = os.path.join(os.environ['CMSSW_BASE'],'src/HiggsAna
 
 os.environ['MIT_LMT_CFG']  = opts.config[0]
 
-os.environ['MIT_PROD_CFG'] = 'boostedv-v5'
-os.environ['MIT_ANA_HIST'] = '/scratch4/dimatteo/cms/hist/boostedv-v5/merged-p1/'
-
 RunName = opts.RunName
 Type = opts.Type
 Xname = opts.Xname
 Xmin = opts.Xaxis[0]
 Xmax = opts.Xaxis[1]
 Xstep = opts.Xaxis[2]
-Xbins = range(Xmin, Xmax+Xstep, Xstep)
+Xbins = range(Xmin, Xmax+1, Xstep) # old method would overshoot
+print "Xbins: ",Xbins
 if opts.Yname:
     Yname = opts.Yname
 if opts.Yaxis:
     Ymin = opts.Yaxis[0]
     Ymax = opts.Yaxis[1]
     Ystep = opts.Yaxis[2]
-    Ybins = range(Ymax, Ymin-Ystep, -Ystep)
+    Ybins = range(Ymax, Ymin-1, -Ystep)
 
 ###======================================================================================
 ### Convert 2D Plots to 1D Plots

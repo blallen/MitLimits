@@ -37,12 +37,10 @@ LimitTask::LimitTask(TaskProcesses *taskProcesses) :
     // read all environment variables
     TString home     = Utils::GetEnv("HOME");
     TString lmtDir = Utils::GetEnv("MIT_LMT_DIR");
-    TString hstDir   = Utils::GetEnv("MIT_ANA_HIST");
     TString lmtCfg   = Utils::GetEnv("MIT_LMT_CFG");
-    TString prdCfg   = Utils::GetEnv("MIT_PROD_CFG");
     
     // define sample
-    fTask = new TaskProcesses(prdCfg.Data(),hstDir.Data());
+    fTask = new TaskProcesses("","");
     fTask->SetNameTxt(lmtCfg.Data());
     fTask->ReadFile((lmtDir + TString("/config")).Data());
     fTask->Show();
@@ -238,8 +236,9 @@ int LimitTask::GetCutBin(const TH1D* hTmp)
   */
 
   Int_t CutBin = -1;
-  for (Int_t i0 = 0; i0 < hTmp->GetNbinsX()+1; i0++) {
-    if (hTmp->GetBinLowEdge(i0) == fCutValue)
+  for (Int_t i0 = 1; i0 < hTmp->GetNbinsX(); i0++) {
+    if (TMath::Abs( (hTmp->GetBinLowEdge(i0) - fCutValue)/fCutValue ) < 0.01)
+      // no more floating point comparisons
       CutBin = i0;
   }
 
