@@ -250,9 +250,29 @@ int LimitTask::GetCutBin(const TH1D* hTmp)
 
 
 //--------------------------------------------------------------------------------------------------
-TString LimitTask::GetSystValue(const char* type, const char* syst) {
+TString LimitTask::GetSystValue(const char* systName, const char* pName, int iP, const char* systValue, bool isSig) {
   // some comparison scheme that determines what to do for each type of systematic and returns the appropriate value to put in the data card
-  return TString(syst);
+
+  TString output = TString(systValue);
+  
+  if (atoi(systValue) == -1) {
+    double ObsInt = 0.0;
+    if (isSig) {
+      ObsInt = fSigHists[iP]->Integral(GetCutBin(fSigHists[iP]),fSigHists[iP]->GetNbinsX()+1);
+    }
+    else {
+      ObsInt = fBgHists[iP]->Integral(GetCutBin(fBgHists[iP]),fBgHists[iP]->GetNbinsX()+1);
+    }
+    printf("%.3f \n", ObsInt);
+    double UpPerc = GetPercError(ObsInt, pName, systName, "up");
+    double DownPerc = GetPercError(ObsInt, pName, systName, "down");
+    output = TString::Format("%7.2f/%3.2f", DownPerc, UpPerc);  
+    printf("%s %10.2f %10.2f \n", output.Data(), DownPerc, UpPerc);
+  }
+  
+  printf("%s \n", output.Data());
+
+  return output;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -279,13 +299,13 @@ void LimitTask::WriteSystematics()
     // printf("\n Working on syst: %20s %10s ", SystName.Data(), SystType.Data());
     fprintf(fCard, "\n%s %6s ", SystName.Data(), SystType.Data());
     for (unsigned int i1 = 0; i1 < fTask->NSigProcesses(); i1++) {
-      SystValue = GetSystValue(SystType.Data(), fTask->GetSigProcess(i1)->GetSystematic(i0)->Data());
-      // printf("%12s", SystValue.Data());
+      SystValue = GetSystValue(SystName.Data(), fTask->GetBgProcess(i1)->Name()->Data(), i1, fTask->GetSigProcess(i1)->GetSystematic(i0)->Data(), true);
+      printf("%s \n", SystValue.Data());
       fprintf(fCard, "%12s", SystValue.Data());
     }
     for (unsigned int i1 = 0; i1 < fTask->NBgProcesses(); i1++) {
-      SystValue = GetSystValue(SystType.Data(), fTask->GetBgProcess(i1)->GetSystematic(i0)->Data());
-      // printf("%12s", SystValue.Data());
+      SystValue = GetSystValue(SystName.Data(), fTask->GetBgProcess(i1)->Name()->Data(), i1, fTask->GetBgProcess(i1)->GetSystematic(i0)->Data(), false);
+      printf("%s \n", SystValue.Data());
       fprintf(fCard, "%12s", SystValue.Data());
     }
   }
@@ -333,8 +353,8 @@ void LimitTask::WriteSystIntegral()
 	  if (p->GetSystematic(j)->Atof())
 	    {
 	      ObsInt = fSigHists[i]->Integral(GetCutBin(fSigHists[i]),fSigHists[i]->GetNbinsX()+1);
-	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Up");
-	      DownPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Down");
+	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "up");
+	      DownPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "down");
 	      fprintf(fCard, "%7.2f/%3.2f", DownPerc, UpPerc);
 	    }
 	  else 
@@ -346,8 +366,8 @@ void LimitTask::WriteSystIntegral()
 	  if (p->GetSystematic(j)->Atof())
 	    {
 	      ObsInt = fBgHists[i]->Integral(GetCutBin(fBgHists[i]),fBgHists[i]->GetNbinsX()+1);
-	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Up");
-	      DownPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "Down");
+	      UpPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "up");
+	      DownPerc = GetPercError(ObsInt, p->Name()->Data(), fTask->GetSystematic(j)->Data(), "down");
 	      fprintf(fCard, "%7.2f/%3.2f", DownPerc, UpPerc);
 	    }
 	  else 
@@ -359,7 +379,7 @@ void LimitTask::WriteSystIntegral()
 //--------------------------------------------------------------------------------------------------
 double LimitTask::GetPercError(double ObsInt, const char* process, const char* syst, const char* direction)
 {
-  TString Name = TString(process)+TString("_")+TString(syst)+TString(direction);
+  TString Name = TString(process)+TString("-")+TString(syst)+TString(direction);
   TH1D* hTmp = (TH1D*)fRootFile->Get(Name.Data());
   if (!hTmp) 
     {

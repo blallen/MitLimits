@@ -40,7 +40,7 @@ namespace mithep
 
     // Write Header for any Data Card
     void                 WriteHeader         ();
-    TString              GetSystValue        (const char* type, const char* syst);
+    TString              GetSystValue        (const char* systName, const char* pName, int iP, const char* systValue, bool isSig);
     void                 WriteSystematics    ();
 
 

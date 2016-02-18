@@ -74,14 +74,17 @@ for Ybin in Ybins:
     outFileName = os.path.join(RootDir, RunName+'_'+Yname+'_'+str(Ybin)+'_'+Xname+'.root')
     file1D = TFile(outFileName, "RECREATE")
     for sample in samples:
-        # print sample
-        histo2D = file2D.Get(sample)
-        # print histo2D
-        Ydiff = (Ymin - histo2D.GetYaxis().GetBinLowEdge(1))
-        lowBin = ( Ydiff / histo2D.GetYaxis().GetBinWidth(1)) + 1
-        histo1D = histo2D.ProjectionX(sample, int(lowBin), histo2D.GetNbinsY()+1, "o")
-        # print Yname, Ybin, Ydiff, lowBin, histo1D.Integral()
-        file1D.cd()
-        histo1D.Write()
+        for key in file2D.GetListOfKeys():
+            name = key.GetName()
+            if sample in name:
+                # print sample, name
+                histo2D = file2D.Get(name)
+                # print histo2D
+                Ydiff = (Ymin - histo2D.GetYaxis().GetBinLowEdge(1))
+                lowBin = ( Ydiff / histo2D.GetYaxis().GetBinWidth(1)) + 1
+                histo1D = histo2D.ProjectionX(name, int(lowBin), histo2D.GetNbinsY()+1, "o")
+                # print Yname, Ybin, Ydiff, lowBin, histo1D.Integral()
+                file1D.cd()
+                histo1D.Write()
     file1D.Close()
 file2D.Close()
