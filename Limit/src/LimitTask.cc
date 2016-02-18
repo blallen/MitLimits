@@ -263,14 +263,14 @@ TString LimitTask::GetSystValue(const char* systName, const char* pName, int iP,
     else {
       ObsInt = fBgHists[iP]->Integral(GetCutBin(fBgHists[iP]),fBgHists[iP]->GetNbinsX()+1);
     }
-    printf("%.3f \n", ObsInt);
+    // printf("%.3f \n", ObsInt);
     double UpPerc = GetPercError(ObsInt, pName, systName, "up");
     double DownPerc = GetPercError(ObsInt, pName, systName, "down");
     output = TString::Format("%7.2f/%3.2f", DownPerc, UpPerc);  
-    printf("%s %10.2f %10.2f \n", output.Data(), DownPerc, UpPerc);
+    // printf("%s %10.2f %10.2f \n", output.Data(), DownPerc, UpPerc);
   }
   
-  printf("%s \n", output.Data());
+  // printf("%s \n", output.Data());
 
   return output;
 }
@@ -300,12 +300,12 @@ void LimitTask::WriteSystematics()
     fprintf(fCard, "\n%s %6s ", SystName.Data(), SystType.Data());
     for (unsigned int i1 = 0; i1 < fTask->NSigProcesses(); i1++) {
       SystValue = GetSystValue(SystName.Data(), fTask->GetBgProcess(i1)->Name()->Data(), i1, fTask->GetSigProcess(i1)->GetSystematic(i0)->Data(), true);
-      printf("%s \n", SystValue.Data());
+      // printf("%s \n", SystValue.Data());
       fprintf(fCard, "%12s", SystValue.Data());
     }
     for (unsigned int i1 = 0; i1 < fTask->NBgProcesses(); i1++) {
       SystValue = GetSystValue(SystName.Data(), fTask->GetBgProcess(i1)->Name()->Data(), i1, fTask->GetBgProcess(i1)->GetSystematic(i0)->Data(), false);
-      printf("%s \n", SystValue.Data());
+      // printf("%s \n", SystValue.Data());
       fprintf(fCard, "%12s", SystValue.Data());
     }
   }
